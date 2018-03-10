@@ -5,11 +5,11 @@ const auth = require('../authenticate');
 const router = express.Router();
 
 
-router.get('/', function(req,res,next) {
+router.get('/', (req, res, next) => {
 
 });
 
-router.post('/register', function(req, res, next) {
+router.post('/register', (req, res, next) => {
 
 });
 
