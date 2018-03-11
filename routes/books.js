@@ -63,22 +63,14 @@ async function bookRoute(req, res) {
 
 // Fall sem býr til bók
 // TODO ákveða hvaða hlutir verða teknir inn (ekki gerð krafa um alla þessa)
-async function createRoute(req, res, next) {
-  console.log(req.body);
-  await createBook(req.body)
-  .then((data) => {
-    res.status(200)
-      .json({
-        data,
-      });
-  })
-  .catch(err => next(err));
-next();
-/*   if (!result.success) {
+async function createRoute(req, res) {
+  const result = await createBook(req.body);
+
+  if (!result.status) {
     return res.status(400).json(result.validation);
   }
 
-  return res.status(201).json(result.item); */
+  return res.status(201).json(result.item);
 }
 
 // Fall sem patch-ar (update-ar bók)

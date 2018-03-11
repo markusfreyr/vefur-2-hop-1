@@ -1,15 +1,21 @@
-const knex = require('knex')({
-  client: 'pg',
-  connection: process.env.DATABASE_URL || 'postgres://:@localhost/h1',
-  searchPath: ['knex', 'public'],
-});
 const bcrypt = require('bcrypt');
 const { Client } = require('pg');
 
 const connectionString = process.env.DATABASE_URL;
-// Skoðið knex js -- http://knexjs.org/
 
-// bara smá hugmyndir um queries
+async function query(q, values = []) {
+  const client = new Client({ connectionString });
+  await client.connect();
+
+  try {
+    const result = await client.query(q, values);
+    return result;
+  } catch (err) {
+    return { error: 'Error running query' };
+  } finally {
+    await client.end();
+  }
+}
 
 async function create(params) {
 
@@ -28,17 +34,36 @@ async function readOne(params) {
 }
 
 async function readAll(offset, limit) {
-  return knex.select('*')
-    .from('books')
-    .offset(offset)
-    .limit(limit);
+  const q = 'SELECT * FROM books OFFSET $1 LIMIT $2';
+  const result = await query(q, [offset, limit]);
+  const { rows } = result;
+  return rows;
 }
 
+
 async function createBook({
-  title, ISBN13, author, description, categorie,
-} = {}) {
-  return knex('books')
-    .insert(title, ISBN13, author, description, categorie);
+  title,
+  ISBN13,
+  author,
+  description,
+  categorie,
+}) {
+  const q = 'INSERT INTO books (title, ISBN13, author, description, categorie) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+  const result = await query(q, [title, ISBN13, author, description, categorie]);
+
+  if (!result.error) {
+    return {
+      success: true,
+      validation: [],
+      item: result.rows[0],
+    };
+  }
+
+  return {
+    success: true,
+    validation: [{ error: 'Þetta er nú þegar til' }],
+    item: '',
+  };
 }
 
 async function delBook(params) {
@@ -54,29 +79,6 @@ async function createCategory(params) {
 }
 
 // Á EFTIR AÐ REFACTOR-A ÞETTA FYRIR KNEX
-
-/* 
-  Tekur inn query og parametra frá öllum föllum sem eru
-  skilgr fyrir neðan þetta fall. Viljum líklegast henda þessu
-  þegar það er búið að refactor fyrir knex eða láta knex nota
-  sbr hjálpardude?
-*/
-async function query(q, values = []) {
-  const client = new Client({ connectionString });
-  await client.connect();
-
-  let result;
-
-  try {
-    result = await client.query(q, values);
-  } catch (err) {
-    throw err;
-  } finally {
-    await client.end();
-  }
-
-  return result;
-}
 
 async function findByUsername(username) {
   const q = 'SELECT * FROM users WHERE username = $1';

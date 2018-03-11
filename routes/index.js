@@ -22,10 +22,6 @@ async function register(req, res) {
   return res.status(201).json(result.item);
 }
 
-router.get('/', (req, res) => {
-  res.json({ error: 'þetta þarf ekki?' });
-});
-
 router.post('/register', catchErrors(register));
 router.post('/login', catchErrors(login));
 

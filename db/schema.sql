@@ -17,7 +17,7 @@ create table categories(
 create table books(
     id SERIAL PRIMARY KEY,
     title varchar(64) UNIQUE NOT NULL,
-    ISBN13 smallint UNIQUE NOT NULL,
+    ISBN13 varchar(13) UNIQUE NOT NULL,
     author varchar(64),
     description text,
     categorie varchar(64) NOT NULL references categories(name) 
@@ -25,8 +25,8 @@ create table books(
 
 create table read_books(
     id SERIAL PRIMARY KEY,
-    user_id smallint references users(id),
-    book_id smallint references books(id),
-    rank smallint,
+    user_id INTEGER references users(id),
+    book_id INTEGER references books(id),
+    rank varchar(1),
     review text 
 );
