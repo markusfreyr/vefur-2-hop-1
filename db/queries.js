@@ -5,6 +5,9 @@ const knex = require('knex')({
   connection: process.env.DATABASE_URL || 'postgres://:@localhost/h1',
   searchPath: ['knex', 'public'],
 });
+const bcrypt = require('bcrypt');
+const { Client } = require('pg');
+const connectionString = process.env.DATABASE_URL;
 
 const validator = require('validator');
 const xss = require('xss');
@@ -253,16 +256,23 @@ async function findById(id) {
   return null;
 }
 
-async function createUser(username, password) {
+async function createUser({ username, name, password } = {}) {
   const hashedPassword = await bcrypt.hash(password, 11);
 
   // vantar að validate-a, þarf að senda meira info inn (username,password, name, picture(optional))
   // svo ssx-a ef engar villur
-  const q = 'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *';
+ 
+=======
+  const q = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING *';
 
-  const result = await query(q, [username, hashedPassword]);
+  const result = await query(q, [username, name, hashedPassword]);
 
-  return result.rows[0];
+  // vantar validation
+  return {
+    success: true,
+    validation: [],
+    item: result.rows[0],
+  };
 }
 
 module.exports = {

@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 
 /* GET users listing. */
@@ -14,7 +15,7 @@ router.get('/me', (req, res, next) => {
   res.json({ error: 'ekki tilbuið' });
 });
 
-router.get('/me/profile', (req, res, next) => {
+router.post('/me/profile', (req, res, next) => {
   res.json({ error: 'ekki tilbuið' });
 });
 
@@ -26,7 +27,12 @@ router.get('/me/read', (req, res, next) => {
   res.json({ error: 'ekki tilbuið' });
 });
 
-router.get('/me/read/:id', (req, res, next) => {
+router.post('/me/read', (req, res, next) => {
+  res.json({ error: 'ekki tilbuið' });
+});
+
+
+router.delete('/me/read/:id', (req, res, next) => {
   res.json({ error: 'ekki tilbuið' });
 });
 

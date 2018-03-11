@@ -1,5 +1,5 @@
 const express = require('express');
-
+const { requireAuthentication } = require('../authenticate');
 
 const {
   readCategories,
@@ -65,6 +65,6 @@ async function createRoute(req, res) {
 }
 
 router.get('/', catchErrors(categoriesRoute));
-router.post('/', catchErrors(createRoute));
+router.post('/', requireAuthentication, catchErrors(createRoute));
 
 module.exports = router;
