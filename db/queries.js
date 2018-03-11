@@ -27,12 +27,18 @@ async function readOne(params) {
 
 }
 
-async function readAll(params) {
-
+async function readAll(offset, limit) {
+  return knex.select('*')
+    .from('books')
+    .offset(offset)
+    .limit(limit);
 }
 
-async function createBook(params) {
-
+async function createBook({
+  title, ISBN13, author, description, categorie,
+} = {}) {
+  return knex('books')
+    .insert(title, ISBN13, author, description, categorie);
 }
 
 async function delBook(params) {

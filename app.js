@@ -15,10 +15,7 @@ const categories = require('./routes/categories');
 const { passport } = require('./authenticate');
 
 const app = express();
-app.use(express.json());
 app.use(passport.initialize());
-
-app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -42,7 +39,7 @@ app.use((err, req, res, next) => {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+
 });
 
 module.exports = app;
