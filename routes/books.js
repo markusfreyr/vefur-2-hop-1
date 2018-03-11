@@ -64,15 +64,9 @@ async function bookRoute(req, res) {
 // Fall sem býr til bók
 // TODO ákveða hvaða hlutir verða teknir inn (ekki gerð krafa um alla þessa)
 async function createRoute(req, res) {
-  const {
-    title, ISBN13, author, bio, category, ISBN10, published, pages, language,
-  } = req.body;
+  const result = await createBook(req.body);
 
-  const result = await createBook({
-    title, ISBN13, author, bio, category, ISBN10, published, pages, language,
-  });
-
-  if (!result.success) {
+  if (!result.status) {
     return res.status(400).json(result.validation);
   }
 
@@ -110,7 +104,7 @@ function catchErrors(fn) {
 }
 
 router.get('/', catchErrors(booksRoute));
-router.post('/', requireAuthentication, catchErrors(createRoute));
+router.post('/', catchErrors(createRoute));
 router.get('/:id', catchErrors(bookRoute));
 router.patch('/:id', requireAuthentication, catchErrors(patchRoute));
 

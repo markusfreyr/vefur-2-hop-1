@@ -1,17 +1,10 @@
-import { config } from '../../../../../../../../AppData/Local/Microsoft/TypeScript/2.6/node_modules/@types/bluebird';
-
-const knex = require('knex')({
-  client: 'pg',
-  connection: process.env.DATABASE_URL || 'postgres://:@localhost/h1',
-  searchPath: ['knex', 'public'],
-});
 const bcrypt = require('bcrypt');
 const { Client } = require('pg');
-const connectionString = process.env.DATABASE_URL;
-
 const validator = require('validator');
 const xss = require('xss');
 const ISBN = require('isbn');
+
+const connectionString = process.env.DATABASE_URL;
 
 /**
  * TODO þarf að prófa þetta fall, viljum við hafa allt þarna
@@ -147,9 +140,19 @@ function validateUser({
   return errors;
 }
 
-// Skoðið knex js -- http://knexjs.org/
+async function query(q, values = []) {
+  const client = new Client({ connectionString });
+  await client.connect();
 
-// bara smá hugmyndir um queries
+  try {
+    const result = await client.query(q, values);
+    return result;
+  } catch (err) {
+    return { error: 'Error running query' };
+  } finally {
+    await client.end();
+  }
+}
 
 async function create(params) {
 
@@ -167,22 +170,36 @@ async function readOne(params) {
 
 }
 
-async function readAll(params) {
-
+async function readAll(offset, limit) {
+  const q = 'SELECT * FROM books OFFSET $1 LIMIT $2';
+  const result = await query(q, [offset, limit]);
+  const { rows } = result;
+  return rows;
 }
 
-async function createBook(params) {
-  // verður sirka svona?....
-  const validation = validateBook(params);
+async function createBook({
+  title,
+  ISBN13,
+  author,
+  description,
+  categorie,
+}) {
+  const q = 'INSERT INTO books (title, ISBN13, author, description, categorie) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+  const result = await query(q, [title, ISBN13, author, description, categorie]);
 
-  if (validation.length > 0) {
+  if (!result.error) {
     return {
-      success: false,
-      validation,
+      success: true,
+      validation: [],
+      item: result.rows[0],
     };
   }
 
-  // hér geta xss á params
+  return {
+    success: true,
+    validation: [{ error: 'Þetta er nú þegar til' }],
+    item: '',
+  };
 }
 
 async function delBook(params) {
@@ -205,31 +222,6 @@ async function createCategory(params) {
   }
 
   // hér gera xss á params
-}
-
-// Á EFTIR AÐ REFACTOR-A ÞETTA FYRIR KNEX
-
-/*
-  Tekur inn query og parametra frá öllum föllum sem eru
-  skilgr fyrir neðan þetta fall. Viljum líklegast henda þessu
-  þegar það er búið að refactor fyrir knex eða láta knex nota
-  sbr hjálpardude?
-*/
-async function query(q, values = []) {
-  const client = new Client({ connectionString });
-  await client.connect();
-
-  let result;
-
-  try {
-    result = await client.query(q, values);
-  } catch (err) {
-    throw err;
-  } finally {
-    await client.end();
-  }
-
-  return result;
 }
 
 async function findByUsername(username) {
