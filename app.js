@@ -12,11 +12,11 @@ const categories = require('./routes/categories');
 // Er ekki viss hvort þetta virkar svona annars hægt
 // sja linu 20
 // að setja upp passport hér
-const auth = require('./authenticate');
+const { passport } = require('./authenticate');
 
 const app = express();
 app.use(express.json());
-app.use(auth.passport.initialize());
+app.use(passport.initialize());
 
 app.use(logger('dev'));
 app.use(bodyParser.json());

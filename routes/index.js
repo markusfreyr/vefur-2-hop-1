@@ -1,16 +1,16 @@
 const express = require('express');
 const users = require('../db/queries');
-const auth = require('../authenticate');
+const { comparePasswords, giveToken } = require('../authenticate');
 
 const router = express.Router();
 
 
 router.get('/', (req, res, next) => {
-
+  res.json({ error: 'þetta þarf ekki?' });
 });
 
 router.post('/register', (req, res, next) => {
-
+  res.json({ error: 'ekki tilbuið' });
 });
 
 router.post('/login', async (req, res) => {
@@ -22,10 +22,10 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'No such user' });
   }
 
-  const passwordIsCorrect = await auth.comparePasswords(password, user.password);
+  const passwordIsCorrect = await comparePasswords(password, user.password);
 
   if (passwordIsCorrect) {
-    auth.giveToken(req, res); // fall sem mun skila token
+    giveToken(req, res); // fall sem mun skila token
   }
 
   return res.status(401).json({ error: 'Invalid password' });
