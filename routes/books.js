@@ -17,13 +17,12 @@ async function booksRoute(req, res) {
   limit = Number(limit);
 
 
-
   const rows = await readAll(offset, limit);
 
   const result = {
     links: {
       self: {
-        href: `http://localhost:3000/?offset=${offset}&limit=${limit}`,
+        href: `http://localhost:3000/books/?offset=${offset}&limit=${limit}`,
       },
     },
     limit,
@@ -34,14 +33,14 @@ async function booksRoute(req, res) {
   // Ef þetta er ekki fyrsta síða, þá setjum við 'prev' síðu
   if (offset > 0) {
     result.links.prev = {
-      href: `http://localhost:3000/?offset=${offset - limit}&limit=${limit}`,
+      href: `http://localhost:3000/books/?offset=${offset - limit}&limit=${limit}`,
     };
   }
 
   // Ef raðir færri en limit þá kemur ekki next síða
   if (!(rows.length < limit)) {
     result.links.next = {
-      href: `http://localhost:3000/?offset=${Number(offset) + limit}&limit=${limit}`,
+      href: `http://localhost:3000/books/?offset=${Number(offset) + limit}&limit=${limit}`,
     };
   }
 

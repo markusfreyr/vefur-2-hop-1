@@ -51,7 +51,7 @@ async function categoriesRoute(req, res) {
   return res.json(result);
 }
 
-// Fall sem býr til bók
+// Fall sem býr til category
 async function createRoute(req, res) {
   const { categoryName } = req.body;
 
@@ -66,5 +66,5 @@ async function createRoute(req, res) {
 
 router.get('/', catchErrors(categoriesRoute));
 router.post('/', catchErrors(createRoute));
-  
+
 module.exports = router;
