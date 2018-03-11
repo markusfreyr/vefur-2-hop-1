@@ -3,7 +3,10 @@ const knex = require('knex')({
   connection: process.env.DATABASE_URL || 'postgres://:@localhost/h1',
   searchPath: ['knex', 'public'],
 });
+const bcrypt = require('bcrypt');
+const { Client } = require('pg');
 
+const connectionString = process.env.DATABASE_URL;
 // Skoðið knex js -- http://knexjs.org/
 
 // bara smá hugmyndir um queries
@@ -93,14 +96,19 @@ async function findById(id) {
   return null;
 }
 
-async function createUser(username, password) {
+async function createUser({ username, name, password } = {}) {
   const hashedPassword = await bcrypt.hash(password, 11);
 
-  const q = 'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *';
+  const q = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING *';
 
-  const result = await query(q, [username, hashedPassword]);
+  const result = await query(q, [username, name, hashedPassword]);
 
-  return result.rows[0];
+  // vantar validation
+  return {
+    success: true,
+    validation: [],
+    item: result.rows[0],
+  };
 }
 
 module.exports = {
@@ -114,4 +122,4 @@ module.exports = {
   findByUsername,
   findById,
   createUser,
-}
+};
