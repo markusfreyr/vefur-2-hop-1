@@ -1,5 +1,6 @@
 const express = require('express');
 
+
 const {
   readCategories,
   createCategory,
@@ -65,5 +66,5 @@ async function createRoute(req, res) {
 
 router.get('/', catchErrors(categoriesRoute));
 router.post('/', catchErrors(createRoute));
-
+  
 module.exports = router;
