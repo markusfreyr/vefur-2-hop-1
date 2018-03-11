@@ -1,35 +1,33 @@
 const express = require('express');
-const users = require('../db/queries');
-const { comparePasswords, giveToken } = require('../authenticate');
+const { login } = require('../authenticate');
+const { createUser } = require('../db/queries');
 
 const router = express.Router();
 
+function catchErrors(fn) {
+  return (req, res, next) => fn(req, res, next).catch(next);
+}
 
-router.get('/', (req, res, next) => {
+async function register(req, res) {
+  const {
+    username, name, password,
+  } = req.body;
+
+  const result = await createUser({ username, name, password });
+
+  if (!result.success) {
+    return res.status(400).json(result.validation);
+  }
+
+  return res.status(201).json(result.item);
+}
+
+router.get('/', (req, res) => {
   res.json({ error: 'þetta þarf ekki?' });
 });
 
-router.post('/register', (req, res, next) => {
-  res.json({ error: 'ekki tilbuið' });
-});
-
-router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-  const user = await users.findByUsername(username);
-  req.id = user.id; // Flýtur þá með inn í giveToken..
-
-  if (!user) {
-    return res.status(401).json({ error: 'No such user' });
-  }
-
-  const passwordIsCorrect = await comparePasswords(password, user.password);
-
-  if (passwordIsCorrect) {
-    giveToken(req, res); // fall sem mun skila token
-  }
-
-  return res.status(401).json({ error: 'Invalid password' });
-});
+router.post('/register', catchErrors(register));
+router.post('/login', catchErrors(login));
 
 
 module.exports = router;

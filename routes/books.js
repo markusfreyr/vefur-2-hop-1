@@ -1,7 +1,5 @@
 const express = require('express');
-
-const router = express.Router();
-
+const { requireAuthentication } = require('../authenticate');
 const {
   createBook,
   readAll,
@@ -9,14 +7,15 @@ const {
   update,
 } = require('../db/queries');
 
+const router = express.Router();
+
+
 // Fall sem kallar á readAll til að sækja bækur
 async function booksRoute(req, res) {
   // frumstilla offset og limit ef ekkert var slegið inn
   let { offset = 0, limit = 10 } = req.query;
   offset = Number(offset);
   limit = Number(limit);
-
-
 
   const rows = await readAll(offset, limit);
 
@@ -111,8 +110,8 @@ function catchErrors(fn) {
 }
 
 router.get('/', catchErrors(booksRoute));
-router.post('/', catchErrors(createRoute));
+router.post('/', requireAuthentication, catchErrors(createRoute));
 router.get('/:id', catchErrors(bookRoute));
-router.patch('/:id', catchErrors(patchRoute));
+router.patch('/:id', requireAuthentication, catchErrors(patchRoute));
 
 module.exports = router;
