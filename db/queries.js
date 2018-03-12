@@ -4,7 +4,8 @@ const validator = require('validator');
 const xss = require('xss');
 const ISBN = require('isbn');
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL || 'postgres://:@localhost/h1';
+
 
 /**
  * TODO þarf að prófa þetta fall, viljum við hafa allt þarna
@@ -90,9 +91,8 @@ function validateBook({
   return errors;
 }
 
-function validateCategory({ categoryName }) {
+function validateCategory(categoryName) {
   const errors = [];
-
   if (typeof categoryName !== 'string' || !validator.isLength(categoryName, { min: 1, max: 30 })) {
     errors.push({
       field: 'categoryName',
@@ -211,15 +211,24 @@ async function readCategories(params) {
 }
 
 async function createCategory(params) {
-  // verður sirkar svona?...
-  const validation = validateCategory(params);
+  const q = 'INSERT INTO categories (name) VALUES ($1) RETURNING *';
+  const result = await query(q, [params]);
 
-  if (validation.length > 0) {
+  const validation = validateCategory(params);
+  if (validation.length > 0 || result.error) {
     return {
       success: false,
       validation,
+      item: { error: 'Category núþegar til' },
     };
   }
+
+  return {
+    success: true,
+    validation: [],
+    item: result.rows[0],
+  };
+
 
   // hér gera xss á params
 }
@@ -254,7 +263,6 @@ async function createUser({ username, name, password } = {}) {
   // vantar að validate-a, þarf að senda meira info inn (username,password, name, picture(optional))
   // svo ssx-a ef engar villur
  
-=======
   const q = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING *';
 
   const result = await query(q, [username, name, hashedPassword]);
