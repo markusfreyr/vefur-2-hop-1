@@ -66,7 +66,7 @@ async function bookRoute(req, res) {
 async function createRoute(req, res) {
   const result = await createBook(req.body);
 
-  if (!result.status) {
+  if (!result.success) {
     return res.status(400).json(result.validation);
   }
 

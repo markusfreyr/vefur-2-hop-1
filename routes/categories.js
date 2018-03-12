@@ -53,9 +53,9 @@ async function categoriesRoute(req, res) {
 
 // Fall sem býr til category
 async function createRoute(req, res) {
-  const { categoryName } = req.body;
+  const { name } = req.body;
 
-  const result = await createCategory({ categoryName });
+  const result = await createCategory({ name });
 
   if (!result.success) {
     return res.status(400).json(result.validation);
