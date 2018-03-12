@@ -4,7 +4,7 @@ const validator = require('validator');
 const xss = require('xss');
 const ISBN = require('isbn');
 
-const connectionString = process.env.DATABASE_URL || 'postgres://:@localhost/h1';
+const connectionString = process.env.DATABASE_URL || 'postgres://@localhost/h1';
 
 
 /**
@@ -12,33 +12,31 @@ const connectionString = process.env.DATABASE_URL || 'postgres://:@localhost/h1'
  * (ekki skilda að hafa öll skilyrði í verkefni)
  * viljum við validate-a isbn tölur svona vel?
  */
+// ISBN10, published, pages, language,
 function validateBook({
-  title, ISBN13, author, bio, category, ISBN10, published, pages, language,
+  title, ISBN13, author, description, categorie,
 }) {
   const errors = [];
-  const isbn13a = ISBN.parse(ISBN13);
-  const isbn10a = ISBN.parse(ISBN10);
-  const stringPages = pages.toString();
+  // const isbn13a = ISBN.parse(input);
+  // const isbn10a = ISBN.parse(ISBN10);
+  // const stringPages = pages.toString();
 
-
-  if (!validator.isLength(title, { min: 1, max: 255 })) {
+  if (typeof title !== 'string' || !validator.isLength(title, { min: 1, max: 100 })) {
     errors.push({
       field: 'title',
-      message: 'Title must be a string of length 1 to 255 characters',
+      message: 'Title must be a string of length 1 to 100 characters',
     });
   }
-
-  if (!isbn13a.isIsbn13()) {
+  if (isNaN(ISBN13) || !validator.isLength(ISBN13, { min: 13, max: 13 })) {
     errors.push({
       field: 'ISBN13',
       message: 'ISBN13 must be 13 digit string made of numbers',
     });
   }
-
-  if (!validator.isLength(category, { min: 1, max: 255 })) {
+  if (typeof categorie !== 'string' || !validator.isLength(categorie, { min: 1, max: 255 })) {
     errors.push({
       field: 'category',
-      message: 'Category must be a valid category string',
+      message: 'Category must be a valid category of type string',
     });
   }
   // Ekki krafa, en ef eitthvað slegið inn þá þarf hann að vera réttur
@@ -49,13 +47,13 @@ function validateBook({
     });
   }
   // Ekki krafa, en ef eitthvað slegið inn þá þarf hann að vera réttur
-  if (bio && typeof bio !== 'string') {
+  if (description && typeof description !== 'string') {
     errors.push({
       field: 'bio',
       message: 'Bio must be of type string',
     });
   }
-
+  /*
   // Ekki krafa, en ef eitthvað slegið inn þá þarf hann að vera réttur
   if (ISBN10 && !isbn10a.isIsbn10()) {
     errors.push({
@@ -87,15 +85,15 @@ function validateBook({
       message: 'Language must be a string with a length of 2 charachters',
     });
   }
-
+*/
   return errors;
 }
 
-function validateCategory(categoryName) {
+function validateCategory(name) {
   const errors = [];
-  if (typeof categoryName !== 'string' || !validator.isLength(categoryName, { min: 1, max: 30 })) {
+  if (typeof name !== 'string' || !validator.isLength(name, { min: 1, max: 30 })) {
     errors.push({
-      field: 'categoryName',
+      field: 'name',
       message: 'Category name must be a string of length 1 to 30 characters',
     });
   }
@@ -183,22 +181,70 @@ async function createBook({
   author,
   description,
   categorie,
-}) {
-  const q = 'INSERT INTO books (title, ISBN13, author, description, categorie) VALUES ($1, $2, $3, $4, $5) RETURNING *';
-  const result = await query(q, [title, ISBN13, author, description, categorie]);
+} = {}) {
+  const client = new Client({ connectionString });
 
-  if (!result.error) {
+  const validation = validateBook({
+    title,
+    ISBN13,
+    author,
+    description,
+    categorie,
+  });
+
+  if (validation.length > 0) {
     return {
-      success: true,
-      validation: [],
-      item: result.rows[0],
+      success: false,
+      validation,
     };
   }
 
+  const cleanTitle = xss(title);
+  const cleanISBN13 = xss(ISBN13);
+  const cleanAuthor = xss(author);
+  const cleanDescription = xss(description);
+  const cleanCategorie = xss(categorie);
+
+  await client.connect();
+
+  const q = 'INSERT INTO books (title, ISBN13, author, description, categorie) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+  const values = [cleanTitle, cleanISBN13, cleanAuthor, cleanDescription, cleanCategorie];
+
+  let result;
+
+  try {
+    result = await client.query(q, values);
+  } catch (err) {
+    // 23505 er error kóði fyrir unique violation (hjá okkur fyrir title eða ISBN13)
+    if (err.code === '23505') {
+      // Ef það var fyrir title
+      if (err.detail.includes('title')) {
+        return {
+          success: false,
+          validation: [{ error: 'Title must be unique (title already exists)' }],
+          item: '',
+        };
+      }
+
+      return {
+        success: false,
+        validation: [{ error: 'ISBN13 must be unique (ISBN13 already exists)' }],
+        item: '',
+      };
+    }
+
+    // Ef það var ekki 23505 villa þá er það óþekkt villa sem við köstum
+    console.error('Error creating book', err);
+    throw err;
+  } finally {
+    await client.end();
+  }
+
+
   return {
     success: true,
-    validation: [{ error: 'Þetta er nú þegar til' }],
-    item: '',
+    validation: [],
+    item: result.rows[0],
   };
 }
 
@@ -206,21 +252,62 @@ async function delBook(params) {
 
 }
 
-async function readCategories(params) {
+async function readCategories(offset, limit) {
+  const client = new Client({ connectionString });
+  await client.connect();
 
+  const q = 'SELECT * FROM categories OFFSET $1 LIMIT $2';
+  const values = [offset, limit];
+
+  let result;
+
+  try {
+    result = await client.query(q, values);
+  } catch (err) {
+    console.error('Error reading categories', err);
+    throw err;
+  } finally {
+    await client.end();
+  }
+
+  return result.rows;
 }
 
-async function createCategory(params) {
-  const q = 'INSERT INTO categories (name) VALUES ($1) RETURNING *';
-  const result = await query(q, [params]);
+async function createCategory({ name }) {
+  const client = new Client({ connectionString });
+  const validation = validateCategory(name);
 
-  const validation = validateCategory(params);
-  if (validation.length > 0 || result.error) {
+  if (validation.length > 0) {
     return {
       success: false,
       validation,
-      item: { error: 'Category núþegar til' },
     };
+  }
+
+  const cleanCatName = xss(name);
+  await client.connect();
+
+  const q = 'INSERT INTO categories (name) VALUES ($1) RETURNING *';
+  const values = [cleanCatName];
+
+  let result;
+
+  try {
+    result = await client.query(q, values);
+  } catch (err) {
+    // 23505 er error kóði fyrir unique violation (flokkur má ekki vera til)
+    if (err.code === '23505') {
+      return {
+        success: false,
+        validation: [{ error: 'Category must be unique (category already exists)' }],
+        item: '',
+      };
+    }
+    // ef ekki 23505 þá óþekkt villa sem við köstum
+    console.error('Error creating category', err);
+    throw err;
+  } finally {
+    await client.end();
   }
 
   return {
@@ -228,9 +315,6 @@ async function createCategory(params) {
     validation: [],
     item: result.rows[0],
   };
-
-
-  // hér gera xss á params
 }
 
 async function findByUsername(username) {
@@ -262,7 +346,7 @@ async function createUser({ username, name, password } = {}) {
 
   // vantar að validate-a, þarf að senda meira info inn (username,password, name, picture(optional))
   // svo ssx-a ef engar villur
- 
+
   const q = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING *';
 
   const result = await query(q, [username, name, hashedPassword]);
