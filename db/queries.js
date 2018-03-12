@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const { Client } = require('pg');
 const validator = require('validator');
 const xss = require('xss');
-const ISBN = require('isbn');
+// const ISBN = require('isbn');
 
 const connectionString = process.env.DATABASE_URL || 'postgres://@localhost/h1';
 
@@ -14,26 +14,26 @@ const connectionString = process.env.DATABASE_URL || 'postgres://@localhost/h1';
  */
 // ISBN10, published, pages, language,
 function validateBook({
-  title, ISBN13, author, description, categorie,
+  title, isbn13, author, description, category,
 }) {
   const errors = [];
   // const isbn13a = ISBN.parse(input);
   // const isbn10a = ISBN.parse(ISBN10);
   // const stringPages = pages.toString();
 
-  if (typeof title !== 'string' || !validator.isLength(title, { min: 1, max: 100 })) {
+  if (typeof title !== 'string' || !validator.isLength(title, { min: 1, max: 180 })) {
     errors.push({
       field: 'title',
       message: 'Title must be a string of length 1 to 100 characters',
     });
   }
-  if (isNaN(ISBN13) || !validator.isLength(ISBN13, { min: 13, max: 13 })) {
+  if (isNaN(isbn13) || !validator.isLength(isbn13, { min: 13, max: 13 })) {
     errors.push({
       field: 'ISBN13',
       message: 'ISBN13 must be 13 digit string made of numbers',
     });
   }
-  if (typeof categorie !== 'string' || !validator.isLength(categorie, { min: 1, max: 255 })) {
+  if (typeof category !== 'string' || !validator.isLength(category, { min: 1, max: 255 })) {
     errors.push({
       field: 'category',
       message: 'Category must be a valid category of type string',
@@ -146,7 +146,7 @@ async function query(q, values = []) {
     const result = await client.query(q, values);
     return result;
   } catch (err) {
-    return { error: 'Error running query' };
+    return { error: err };
   } finally {
     await client.end();
   }
@@ -175,21 +175,44 @@ async function readAll(offset, limit) {
   return rows;
 }
 
+function queryError(err, msg) {
+  // 23505 er error kóði fyrir unique violation (hjá okkur fyrir title eða ISBN13)
+  if (err.code === '23505') {
+    // Ef það var fyrir title
+    if (err.detail.includes('title')) {
+      return {
+        success: false,
+        validation: [{ error: 'Title must be unique (title already exists)' }],
+        item: '',
+      };
+    }
+    // annars er það ISBN13
+    return {
+      success: false,
+      validation: [{ error: 'ISBN13 must be unique (ISBN13 already exists)' }],
+      item: '',
+    };
+  }
+
+  // Ef það var ekki 23505 villa þá er það óþekkt villa sem við köstum
+  console.error(msg, err);
+  throw err;
+}
+
 async function createBook({
   title,
-  ISBN13,
+  isbn13,
   author,
   description,
-  categorie,
+  category,
 } = {}) {
-  const client = new Client({ connectionString });
-
+  
   const validation = validateBook({
     title,
-    ISBN13,
+    isbn13,
     author,
     description,
-    categorie,
+    category,
   });
 
   if (validation.length > 0) {
@@ -200,46 +223,20 @@ async function createBook({
   }
 
   const cleanTitle = xss(title);
-  const cleanISBN13 = xss(ISBN13);
+  const cleanISBN13 = xss(isbn13);
   const cleanAuthor = xss(author);
   const cleanDescription = xss(description);
-  const cleanCategorie = xss(categorie);
-
-  await client.connect();
+  const cleanCategory = xss(category);
 
   const q = 'INSERT INTO books (title, ISBN13, author, description, categorie) VALUES ($1, $2, $3, $4, $5) RETURNING *';
-  const values = [cleanTitle, cleanISBN13, cleanAuthor, cleanDescription, cleanCategorie];
+  const values = [cleanTitle, cleanISBN13, cleanAuthor, cleanDescription, cleanCategory];
 
-  let result;
+  const result = await query(q, values);
 
-  try {
-    result = await client.query(q, values);
-  } catch (err) {
-    // 23505 er error kóði fyrir unique violation (hjá okkur fyrir title eða ISBN13)
-    if (err.code === '23505') {
-      // Ef það var fyrir title
-      if (err.detail.includes('title')) {
-        return {
-          success: false,
-          validation: [{ error: 'Title must be unique (title already exists)' }],
-          item: '',
-        };
-      }
-
-      return {
-        success: false,
-        validation: [{ error: 'ISBN13 must be unique (ISBN13 already exists)' }],
-        item: '',
-      };
-    }
-
-    // Ef það var ekki 23505 villa þá er það óþekkt villa sem við köstum
-    console.error('Error creating book', err);
-    throw err;
-  } finally {
-    await client.end();
+  if (result.error) {
+    const msg = 'Error creating book';
+    return queryError(result.error, msg);
   }
-
 
   return {
     success: true,

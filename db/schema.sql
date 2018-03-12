@@ -16,7 +16,7 @@ create table categories(
 
 create table books(
     id SERIAL PRIMARY KEY,
-    title varchar(64) UNIQUE NOT NULL,
+    title varchar(180) UNIQUE NOT NULL,
     ISBN13 varchar(13) UNIQUE NOT NULL,
     author varchar(64),
     description text,
