@@ -17,14 +17,13 @@ function validateBook({
 }) {
   const errors = [];
   // const stringPages = pages.toString();
-
   if (typeof title !== 'string' || !validator.isLength(title, { min: 1, max: 180 })) {
     errors.push({
       field: 'title',
       message: 'Title must be a string of length 1 to 100 characters',
     });
   }
-  if (Number.isNaN(isbn13) || !validator.isLength(isbn13, { min: 13, max: 13 })) {
+  if (!isbn13 || Number.isNaN(isbn13) || !validator.isLength(isbn13, { min: 13, max: 13 })) {
     errors.push({
       field: 'isbn13',
       message: 'ISBN13 must be 13 digit string made of numbers',
@@ -187,13 +186,81 @@ async function login(params) {
 
 }
 
-async function update(params) {
+/**
+ * Fall sem les inn id og leitar í gagnagrunni af bók með þetta id.
+ * Skilar object með bókaupllýsingum eða undefined ef það er engin bók með þetta id.
+ * @param {*} id
+ */
+async function readOne(id) {
+  const q = 'SELECT * FROM books WHERE id = $1';
+  const result = await query(q, [id]);
 
+  if (result.error) {
+    const msg = 'Error finding book';
+    return queryError(result.error, msg);
+  }
+
+  return result.rows[0];
 }
 
-async function readOne(params) {
+async function update(id, body) {
+  // Sækja info um bók sem á að breyta
+  const oldBook = await readOne(id);
+  // Ef bókin sem á að breyta er ekki til/fannst ekki
+  if (!oldBook) {
+    return {
+      success: false,
+      notfound: true,
+    };
+  }
 
+  // object sem er jafnt því sem var sent inn, þar sem ekkert var sent er það eins (oldBook)
+  const {
+    title = oldBook.title,
+    isbn13 = oldBook.isbn13,
+    author = oldBook.author,
+    description = oldBook.description,
+    category = oldBook.category,
+  } = body;
+
+  const validation = validateBook({
+    title,
+    isbn13,
+    author,
+    description,
+    category,
+  });
+
+  if (validation.length > 0) {
+    return {
+      success: false,
+      validation,
+    };
+  }
+
+  const cleanTitle = xss(title);
+  const cleanISBN13 = xss(isbn13);
+  const cleanAuthor = xss(author);
+  const cleanDescription = xss(description);
+  const cleanCategory = xss(category);
+
+  const q = 'UPDATE books SET title = $1, ISBN13 = $2, author = $3, description = $4, category = $5 WHERE id = $6 RETURNING *';
+  const values = [cleanTitle, cleanISBN13, cleanAuthor, cleanDescription, cleanCategory, id];
+
+  const result = await query(q, values);
+
+  if (result.error) {
+    const msg = 'Error updating book';
+    return queryError(result.error, msg);
+  }
+
+  return {
+    success: true,
+    validation: [],
+    item: result.rows[0],
+  };
 }
+
 
 async function readAll(offset, limit) {
   const q = 'SELECT * FROM books OFFSET $1 LIMIT $2';
@@ -235,9 +302,8 @@ async function createBook({
   const cleanDescription = xss(description);
   const cleanCategory = xss(category);
 
-  const q = 'INSERT INTO books (title, ISBN13, author, description, categorie) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+  const q = 'INSERT INTO books (title, ISBN13, author, description, category) VALUES ($1, $2, $3, $4, $5) RETURNING *';
   const values = [cleanTitle, cleanISBN13, cleanAuthor, cleanDescription, cleanCategory];
-
 
   const result = await query(q, values);
 

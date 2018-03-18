@@ -76,23 +76,15 @@ async function createRoute(req, res) {
 // Fall sem patch-ar (update-ar bók)
 async function patchRoute(req, res) {
   const { id } = req.params;
-  const {
-    title = null,
-    ISBN13 = null,
-    author = null,
-    bio = null,
-    category = null,
-    ISBN10 = null,
-    published = null,
-    pages = null,
-    language = null,
-  } = req.body;
 
-  const result = await update(id, {
-    title, ISBN13, author, bio, category, ISBN10, published, pages, language,
-  });
+  const result = await update(id, req.body);
 
   if (!result.success) {
+    // Ef það var ekki hægt að patch-a því að bókin fannst ekki
+    if (result.notfound) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+    // Ef það var útaf validation villu
     return res.status(400).json(result.validation);
   }
 
