@@ -1,21 +1,18 @@
 require('dotenv').config();
 
 const express = require('express');
-// const path = require('path');
 const bodyParser = require('body-parser');
 
 const index = require('./routes/index');
 const users = require('./routes/users');
 const books = require('./routes/books');
 const categories = require('./routes/categories');
-const { passport } = require('./authenticate');
 
 const app = express();
 app.use(express.json());
-app.use(passport.initialize());
+
 
 app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use('/', index);
 app.use('/users', users);

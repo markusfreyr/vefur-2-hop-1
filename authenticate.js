@@ -1,14 +1,16 @@
+const express = require('express');
 const bcrypt = require('bcrypt');
 const users = require('./db/queries');
-
 const passport = require('passport');
 const { Strategy, ExtractJwt } = require('passport-jwt');
 const jwt = require('jsonwebtoken');
 const queries = require('./db/queries');
 
+const auth = express();
+
 const {
   JWT_SECRET: jwtSecret,
-  TOKEN_LIFETIME: tokenLifetime = 50,
+  TOKEN_LIFETIME: tokenLifetime,
 } = process.env;
 
 if (!jwtSecret) {
@@ -32,13 +34,7 @@ async function strat(data, next) {
 }
 
 passport.use(new Strategy(jwtOptions, strat));
-
-async function giveToken(req, res) {
-  const payload = { id: req.id };
-  const tokenOptions = { expiresIn: tokenLifetime };
-  const token = jwt.sign(payload, jwtOptions.secretOrKey, tokenOptions);
-  return res.json({ token });
-}
+auth.use(passport.initialize());
 
 async function comparePasswords(hash, password) {
   const result = await bcrypt.compare(hash, password);
@@ -57,7 +53,10 @@ async function login(req, res) {
   const passwordIsCorrect = await comparePasswords(password, user.password);
 
   if (passwordIsCorrect) {
-    giveToken(req, res); // fall sem mun skila token
+    const payload = { id: user.id };
+    const tokenOptions = { expiresIn: parseInt(tokenLifetime, 10) };
+    const token = jwt.sign(payload, jwtOptions.secretOrKey, tokenOptions);
+    return res.json({ token });
   }
 
   return res.status(401).json({ error: 'Invalid password' });
@@ -85,7 +84,7 @@ function requireAuthentication(req, res, next) {
 
 module.exports = {
   comparePasswords,
-  passport,
+  auth,
   login,
   requireAuthentication,
 };

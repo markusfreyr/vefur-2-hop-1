@@ -10,12 +10,16 @@ const connectionString = process.env.DATABASE_URL || 'postgres://:@localhost/h1'
  * TODO þarf að prófa þetta fall, viljum við hafa allt þarna
  * (ekki skilda að hafa öll skilyrði í verkefni)
  * viljum við validate-a isbn tölur svona vel?
+ *
+ * Spurning um að færa þetta í validation.js?
  */
 // ISBN10, published, pages, language,
 function validateBook({
   title, isbn13, author, description, category,
 }) {
   const errors = [];
+console.log(title, isbn13, author, description, category);
+
   // const stringPages = pages.toString();
   if (typeof title !== 'string' || !validator.isLength(title, { min: 1, max: 180 })) {
     errors.push({
@@ -29,6 +33,7 @@ function validateBook({
       message: 'ISBN13 must be 13 digit string made of numbers',
     });
   }
+
   if (typeof category !== 'string' || !validator.isLength(category, { min: 1, max: 255 })) {
     errors.push({
       field: 'category',
@@ -98,7 +103,7 @@ function validateCategory(name) {
 }
 
 function validateUser({
-  username, password, name, picture,
+  username, password, name,
 }) {
   const errors = [];
 
@@ -123,14 +128,6 @@ function validateUser({
     });
   }
 
-  // Ekki krafa, en ef eitthvað er slegið inn þá þarf það að vera strengur
-  if (picture && typeof picture !== 'string') {
-    errors.push({
-      field: 'picture',
-      message: 'Picture must be of type string',
-    });
-  }
-
   return errors;
 }
 
@@ -148,6 +145,12 @@ function queryError(err, msg) {
       return {
         success: false,
         validation: [{ error: 'ISBN13 must be unique (ISBN13 already exists)' }],
+        item: '',
+      };
+    } else if (err.detail.includes('username')) {
+      return {
+        success: false,
+        validation: [{ error: 'User already exists' }],
         item: '',
       };
     }
@@ -288,7 +291,6 @@ async function createBook({
     category,
   });
 
-
   if (validation.length > 0) {
     return {
       success: false,
@@ -385,14 +387,25 @@ async function findById(id) {
 }
 
 async function createUser({ username, name, password } = {}) {
+  const validation = validateUser({ username, name, password });
+
+  if (validation.length > 0) {
+    return {
+      success: false,
+      validation,
+    };
+  }
+
   const hashedPassword = await bcrypt.hash(password, 11);
 
-  // vantar að validate-a, þarf að senda meira info inn (username,password, name, picture(optional))
-  // svo ssx-a ef engar villur
-
-  const q = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING *';
+  const q = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING id, username, name';
 
   const result = await query(q, [username, name, hashedPassword]);
+
+  if (result.error) {
+    const msg = 'Error reading categories';
+    return queryError(result.error, msg);
+  }
 
   // vantar validation
   return {
