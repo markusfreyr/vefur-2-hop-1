@@ -2,9 +2,8 @@ const bcrypt = require('bcrypt');
 const { Client } = require('pg');
 const validator = require('validator');
 const xss = require('xss');
-// const ISBN = require('isbn');
 
-const connectionString = process.env.DATABASE_URL || 'postgres://@localhost/h1';
+const connectionString = process.env.DATABASE_URL || 'postgres://:@localhost/h1';
 
 
 /**
@@ -17,8 +16,6 @@ function validateBook({
   title, isbn13, author, description, category,
 }) {
   const errors = [];
-  // const isbn13a = ISBN.parse(input);
-  // const isbn10a = ISBN.parse(ISBN10);
   // const stringPages = pages.toString();
 
   if (typeof title !== 'string' || !validator.isLength(title, { min: 1, max: 180 })) {
@@ -27,9 +24,9 @@ function validateBook({
       message: 'Title must be a string of length 1 to 100 characters',
     });
   }
-  if (isNaN(isbn13) || !validator.isLength(isbn13, { min: 13, max: 13 })) {
+  if (Number.isNaN(isbn13) || !validator.isLength(isbn13, { min: 13, max: 13 })) {
     errors.push({
-      field: 'ISBN13',
+      field: 'isbn13',
       message: 'ISBN13 must be 13 digit string made of numbers',
     });
   }
@@ -138,6 +135,36 @@ function validateUser({
   return errors;
 }
 
+function queryError(err, msg) {
+  // 23505 er error kóði fyrir unique violation (hjá okkur fyrir title eða ISBN13)
+  if (err.code === '23505') {
+    // Ef það var fyrir title
+    if (err.detail.includes('title')) {
+      return {
+        success: false,
+        validation: [{ error: 'Title must be unique (title already exists)' }],
+        item: '',
+      };
+    } else if (err.detail.includes('isbn13')) { // Ef það var fyrir isbn13
+      return {
+        success: false,
+        validation: [{ error: 'ISBN13 must be unique (ISBN13 already exists)' }],
+        item: '',
+      };
+    }
+    // annars er það category
+    return {
+      success: false,
+      validation: [{ error: 'Category must be unique (category already exists)' }],
+      item: '',
+    };
+  }
+
+  // Ef það var ekki 23505 villa þá er það óþekkt villa sem við köstum
+  console.error(msg, err);
+  throw err;
+}
+
 async function query(q, values = []) {
   const client = new Client({ connectionString });
   await client.connect();
@@ -171,32 +198,12 @@ async function readOne(params) {
 async function readAll(offset, limit) {
   const q = 'SELECT * FROM books OFFSET $1 LIMIT $2';
   const result = await query(q, [offset, limit]);
+  if (result.error) {
+    const msg = 'Error reading books';
+    return queryError(result.error, msg);
+  }
   const { rows } = result;
   return rows;
-}
-
-function queryError(err, msg) {
-  // 23505 er error kóði fyrir unique violation (hjá okkur fyrir title eða ISBN13)
-  if (err.code === '23505') {
-    // Ef það var fyrir title
-    if (err.detail.includes('title')) {
-      return {
-        success: false,
-        validation: [{ error: 'Title must be unique (title already exists)' }],
-        item: '',
-      };
-    }
-    // annars er það ISBN13
-    return {
-      success: false,
-      validation: [{ error: 'ISBN13 must be unique (ISBN13 already exists)' }],
-      item: '',
-    };
-  }
-
-  // Ef það var ekki 23505 villa þá er það óþekkt villa sem við köstum
-  console.error(msg, err);
-  throw err;
 }
 
 async function createBook({
@@ -206,7 +213,6 @@ async function createBook({
   description,
   category,
 } = {}) {
-  
   const validation = validateBook({
     title,
     isbn13,
@@ -214,6 +220,7 @@ async function createBook({
     description,
     category,
   });
+
 
   if (validation.length > 0) {
     return {
@@ -230,6 +237,7 @@ async function createBook({
 
   const q = 'INSERT INTO books (title, ISBN13, author, description, categorie) VALUES ($1, $2, $3, $4, $5) RETURNING *';
   const values = [cleanTitle, cleanISBN13, cleanAuthor, cleanDescription, cleanCategory];
+
 
   const result = await query(q, values);
 
@@ -250,28 +258,17 @@ async function delBook(params) {
 }
 
 async function readCategories(offset, limit) {
-  const client = new Client({ connectionString });
-  await client.connect();
-
   const q = 'SELECT * FROM categories OFFSET $1 LIMIT $2';
-  const values = [offset, limit];
-
-  let result;
-
-  try {
-    result = await client.query(q, values);
-  } catch (err) {
-    console.error('Error reading categories', err);
-    throw err;
-  } finally {
-    await client.end();
+  const result = await query(q, [offset, limit]);
+  if (result.error) {
+    const msg = 'Error reading categories';
+    return queryError(result.error, msg);
   }
-
-  return result.rows;
+  const { rows } = result;
+  return rows;
 }
 
 async function createCategory({ name }) {
-  const client = new Client({ connectionString });
   const validation = validateCategory(name);
 
   if (validation.length > 0) {
@@ -282,29 +279,12 @@ async function createCategory({ name }) {
   }
 
   const cleanCatName = xss(name);
-  await client.connect();
-
   const q = 'INSERT INTO categories (name) VALUES ($1) RETURNING *';
-  const values = [cleanCatName];
+  const result = await query(q, [cleanCatName]);
 
-  let result;
-
-  try {
-    result = await client.query(q, values);
-  } catch (err) {
-    // 23505 er error kóði fyrir unique violation (flokkur má ekki vera til)
-    if (err.code === '23505') {
-      return {
-        success: false,
-        validation: [{ error: 'Category must be unique (category already exists)' }],
-        item: '',
-      };
-    }
-    // ef ekki 23505 þá óþekkt villa sem við köstum
-    console.error('Error creating category', err);
-    throw err;
-  } finally {
-    await client.end();
+  if (result.error) {
+    const msg = 'Error creating category';
+    return queryError(result.error, msg);
   }
 
   return {
