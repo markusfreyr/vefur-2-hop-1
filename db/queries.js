@@ -99,7 +99,7 @@ function validateCategory(name) {
 }
 
 function validateUser({
-  username, password, name, picture,
+  username, password, name,
 }) {
   const errors = [];
 
@@ -121,14 +121,6 @@ function validateUser({
     errors.push({
       field: 'name',
       message: 'Name must be a string of length 1 to 255 characters',
-    });
-  }
-
-  // Ekki krafa, en ef eitthvað er slegið inn þá þarf það að vera strengur
-  if (picture && typeof picture !== 'string') {
-    errors.push({
-      field: 'picture',
-      message: 'Picture must be of type string',
     });
   }
 
@@ -319,14 +311,25 @@ async function findById(id) {
 }
 
 async function createUser({ username, name, password } = {}) {
+  const validation = validateUser({ username, name, password });
+
+  if (validation.length > 0) {
+    return {
+      success: false,
+      validation,
+    };
+  }
+
   const hashedPassword = await bcrypt.hash(password, 11);
 
-  // vantar að validate-a, þarf að senda meira info inn (username,password, name, picture(optional))
-  // svo ssx-a ef engar villur
-
-  const q = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING *';
+  const q = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING id, username, name';
 
   const result = await query(q, [username, name, hashedPassword]);
+
+  if (result.error) {
+    const msg = 'Error reading categories';
+    return queryError(result.error, msg);
+  }
 
   // vantar validation
   return {
