@@ -10,12 +10,16 @@ const connectionString = process.env.DATABASE_URL || 'postgres://:@localhost/h1'
  * TODO þarf að prófa þetta fall, viljum við hafa allt þarna
  * (ekki skilda að hafa öll skilyrði í verkefni)
  * viljum við validate-a isbn tölur svona vel?
+ *
+ * Spurning um að færa þetta í validation.js?
  */
 // ISBN10, published, pages, language,
 function validateBook({
   title, isbn13, author, description, category,
 }) {
   const errors = [];
+console.log(title, isbn13, author, description, category);
+
   // const stringPages = pages.toString();
 
   if (typeof title !== 'string' || !validator.isLength(title, { min: 1, max: 180 })) {
@@ -30,6 +34,7 @@ function validateBook({
       message: 'ISBN13 must be 13 digit string made of numbers',
     });
   }
+
   if (typeof category !== 'string' || !validator.isLength(category, { min: 1, max: 255 })) {
     errors.push({
       field: 'category',
@@ -218,7 +223,6 @@ async function createBook({
     description,
     category,
   });
-
 
   if (validation.length > 0) {
     return {

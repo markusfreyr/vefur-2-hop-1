@@ -20,7 +20,7 @@ create table books(
     ISBN13 varchar(13) UNIQUE NOT NULL,
     author varchar(64),
     description text,
-    categorie varchar(64) NOT NULL references categories(name) 
+    category varchar(64) NOT NULL references categories(name) 
 );
 
 create table read_books(

@@ -104,7 +104,7 @@ function catchErrors(fn) {
 }
 
 router.get('/', catchErrors(booksRoute));
-router.post('/', catchErrors(createRoute));
+router.post('/', requireAuthentication, catchErrors(createRoute));
 router.get('/:id', catchErrors(bookRoute));
 router.patch('/:id', requireAuthentication, catchErrors(patchRoute));
 
