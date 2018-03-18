@@ -26,14 +26,20 @@ function parse(data) {
 // í verkefnalýsingu. svo er ez að gera books, same same!
 async function makeCategories(data) {
   for (const book of data) { //eslint-disable-line
-    const { category } = book;
+    const { category = '' } = book;
     await createCategory(category); //eslint-disable-line
   }
 }
 
 async function makeBooks(data) {
   for (const book of data) { //eslint-disable-line  
-    const { title, isbn13, author, description, category } = book;
+    const {
+      title = '',
+      isbn13 = '',
+      author = '',
+      description = '',
+      category = '',
+    } = book;
     await createBook({ title, isbn13, author, description, category }); //eslint-disable-line
   }
 }
@@ -41,10 +47,8 @@ async function makeBooks(data) {
 async function main() {
   const data = await read(input);
   const parsed = parse(data);
-  //makeCategories(parsed.data);
+  makeCategories(parsed.data);
   makeBooks(parsed.data);
-  // gogn komin á json form þarf bara að setja inn i töflu með loop 😍
-  // console.log('Done filling tables!');
 }
 
 main();
