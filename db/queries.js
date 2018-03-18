@@ -143,6 +143,12 @@ function queryError(err, msg) {
         validation: [{ error: 'ISBN13 must be unique (ISBN13 already exists)' }],
         item: '',
       };
+    } else if (err.detail.includes('username')) {
+      return {
+        success: false,
+        validation: [{ error: 'User already exists' }],
+        item: '',
+      };
     }
     // annars er það category
     return {
