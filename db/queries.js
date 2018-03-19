@@ -7,13 +7,9 @@ const connectionString = process.env.DATABASE_URL || 'postgres://:@localhost/h1'
 
 
 /**
- * TODO þarf að prófa þetta fall, viljum við hafa allt þarna
- * (ekki skilda að hafa öll skilyrði í verkefni)
- * viljum við validate-a isbn tölur svona vel?
  *
  * Spurning um að færa þetta í validation.js?
  */
-// ISBN10, published, pages, language,
 function validateBook({
   title, isbn13, author, description, category,
 }) {
@@ -295,9 +291,6 @@ async function createBook({
   };
 }
 
-async function delBook(params) {
-
-}
 
 async function readCategories(offset, limit) {
   const q = 'SELECT * FROM categories OFFSET $1 LIMIT $2';
@@ -390,17 +383,56 @@ async function createUser({ username, name, password } = {}) {
   };
 }
 
+async function readUsers(offset, limit) {
+  const q = 'SELECT id, username, name, url FROM users OFFSET $1 LIMIT $2';
+  const result = await query(q, [offset, limit]);
+  if (result.error) {
+    const msg = 'Error reading users';
+    return queryError(result.error, msg);
+  }
+  const { rows } = result;
+  return rows;
+}
+
+async function readUser(id) {
+  const q = 'SELECT id, username, name, url FROM users WHERE id = $1';
+  const result = await query(q, [id]);
+
+  if (result.error) {
+    const msg = 'Error finding user';
+    return queryError(result.error, msg);
+  }
+
+  return result.rows[0];
+}
+
+async function readMe(params) {
+
+}
+
+async function patchMe(params) {
+
+}
+
+async function updatePhoto(params) {
+
+}
+
 module.exports = {
   create,
   update,
   readOne,
   readAll,
   createBook,
-  delBook,
   findByUsername,
   findById,
   getUsers,
   createUser,
   readCategories,
   createCategory,
+  readUsers,
+  readUser,
+  readMe,
+  patchMe,
+  updatePhoto,
 };
