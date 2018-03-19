@@ -261,6 +261,18 @@ async function getReadBooks(id) {
   return rows;
 }
 
+async function searchBooks(values) {
+  const q = 'SELECT * FROM books WHERE to_tsvector(title || description) @@ to_tsquery($1) OFFSET $2 LIMIT $3';
+  const result = await query(q, values);
+
+  if (result.error) {
+    const msg = 'Error running query';
+    return queryError(result.error, msg);
+  }
+  const { rows } = result;
+  return rows;
+}
+
 module.exports = {
   update,
   readAll,
@@ -273,4 +285,5 @@ module.exports = {
   updatePhoto,
   createReadBook,
   getReadBooks,
+  searchBooks,
 };
