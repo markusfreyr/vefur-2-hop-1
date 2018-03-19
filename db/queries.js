@@ -293,6 +293,19 @@ async function createReadBook({
   };
 }
 
+async function getReadBooks(id) {
+  const q = 'SELECT * FROM read_books WHERE user_id = $1';
+
+  const result = await query(q, [id]);
+
+  if (result.error) {
+    const msg = 'Error running query';
+    return queryError(result.error, msg);
+  }
+  const { rows } = result;
+  return rows;
+}
+
 module.exports = {
   create,
   update,
@@ -308,4 +321,5 @@ module.exports = {
   patchMe,
   updatePhoto,
   createReadBook,
+  getReadBooks,
 };
