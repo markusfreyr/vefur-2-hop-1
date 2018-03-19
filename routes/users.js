@@ -2,9 +2,8 @@ const express = require('express');
 const { requireAuthentication } = require('../authenticate');
 
 const {
-  readUsers,
+  getUsers,
   findById,
-  readMe,
   patchMe,
   updatePhoto,
 } = require('../db/queries');
@@ -53,7 +52,7 @@ async function userRoute(req, res) {
   offset = Number(offset);
   limit = Number(limit);
 
-  const rows = await readUsers(offset, limit);
+  const rows = await getUsers(offset, limit);
 
   const result = {
     links: {
@@ -83,9 +82,8 @@ async function userRoute(req, res) {
   return res.json(result);
 }
 
-router.get('/:id', requireAuthentication, isItMe, userById);
+router.get('/:id', requireAuthentication, isItMe, catchErrors(userById));
 router.get('/', requireAuthentication, catchErrors(userRoute));
-
 
 
 router.post('/me/profile', (req, res, next) => {

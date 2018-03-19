@@ -147,17 +147,6 @@ async function create(params) {
 
 }
 
-async function getUsers() {
-  const q = 'SELECT id, username, name, url FROM users';
-  const result = await query(q);
-
-  if (result.error) {
-    const msg = 'Error running query';
-    return queryError(result.error, msg);
-  }
-  const { rows } = result;
-  return rows;
-}
 
 /**
  * Fall sem les inn id og leitar í gagnagrunni af bók með þetta id.
@@ -383,7 +372,7 @@ async function createUser({ username, name, password } = {}) {
   };
 }
 
-async function readUsers(offset, limit) {
+async function getUsers(offset, limit) {
   const q = 'SELECT id, username, name, url FROM users OFFSET $1 LIMIT $2';
   const result = await query(q, [offset, limit]);
   if (result.error) {
@@ -394,21 +383,6 @@ async function readUsers(offset, limit) {
   return rows;
 }
 
-async function readUser(id) {
-  const q = 'SELECT id, username, name, url FROM users WHERE id = $1';
-  const result = await query(q, [id]);
-
-  if (result.error) {
-    const msg = 'Error finding user';
-    return queryError(result.error, msg);
-  }
-
-  return result.rows[0];
-}
-
-async function readMe(params) {
-
-}
 
 async function patchMe(params) {
 
@@ -430,9 +404,6 @@ module.exports = {
   createUser,
   readCategories,
   createCategory,
-  readUsers,
-  readUser,
-  readMe,
   patchMe,
   updatePhoto,
 };
