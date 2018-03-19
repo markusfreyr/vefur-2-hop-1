@@ -24,7 +24,7 @@ const jwtOptions = {
 };
 
 async function strat(data, next) {
-  const user = await queries.findById(data.id);
+  const user = await queries.readUsers('WHERE id = $1', [data.id]);
 
   if (user) {
     next(null, user);

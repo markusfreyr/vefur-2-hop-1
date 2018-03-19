@@ -141,9 +141,8 @@ async function createBook({
   };
 }
 
-async function createCategory({ name }) {
+async function createCategory(name) {
   const validation = validateCategory(name);
-
   if (validation.length > 0) {
     return {
       success: false,

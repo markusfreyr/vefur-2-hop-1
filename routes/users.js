@@ -3,7 +3,6 @@ const { requireAuthentication } = require('../authenticate');
 
 const {
   patchMe,
-  findById,
   updatePhoto,
   createReadBook,
   getReadBooks,
@@ -80,15 +79,13 @@ async function userBooks(req, res) {
 
 router.get('/:id', requireAuthentication, isItMe, catchErrors(userById));
 router.get('/', requireAuthentication, catchErrors(userRoute));
+router.get('/:id/read', requireAuthentication, catchErrors(userBooks));
+router.post('/me/read', requireAuthentication, postBook);
 
 
 router.post('/me/profile', (req, res, next) => {
   res.json({ error: 'ekki tilbuið' });
 });
-
-router.get('/:id/read', requireAuthentication, userBooks);
-
-router.post('/me/read', requireAuthentication, postBook);
 
 
 router.delete('/me/read/:id', (req, res, next) => {
