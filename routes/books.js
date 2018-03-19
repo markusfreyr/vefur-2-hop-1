@@ -2,53 +2,23 @@ const express = require('express');
 const { requireAuthentication } = require('../authenticate');
 const {
   createBook,
-  readAll,
   readOne,
   update,
 } = require('../db/queries');
 
+const { getAll } = require('./utils');
+
 const router = express.Router();
 
 
-// Fall sem kallar á readAll til að sækja bækur
+// Fall sem kallar á getAll til að sækja bækur
 async function booksRoute(req, res) {
-  // frumstilla offset og limit ef ekkert var slegið inn
-  let { offset = 0, limit = 10 } = req.query;
-  offset = Number(offset);
-  limit = Number(limit);
-
-  const rows = await readAll(offset, limit);
-
-  const result = {
-    links: {
-      self: {
-        href: `http://localhost:3000/books/?offset=${offset}&limit=${limit}`,
-      },
-    },
-    limit,
-    offset,
-    items: rows,
-  };
-
-  // Ef þetta er ekki fyrsta síða, þá setjum við 'prev' síðu
-  if (offset > 0) {
-    result.links.prev = {
-      href: `http://localhost:3000/books/?offset=${offset - limit}&limit=${limit}`,
-    };
-  }
-
-  // Ef raðir færri en limit þá kemur ekki next síða
-  if (!(rows.length < limit)) {
-    result.links.next = {
-      href: `http://localhost:3000/books/?offset=${Number(offset) + limit}&limit=${limit}`,
-    };
-  }
-
+  const result = await getAll(req.query, 'books');
   return res.json(result);
 }
 
 // Sækir eina bók með id
-async function bookRoute(req, res) {
+async function bookById(req, res) {
   const { id } = req.params;
 
   const book = await readOne(id);
@@ -97,7 +67,7 @@ function catchErrors(fn) {
 
 router.get('/', catchErrors(booksRoute));
 router.post('/', catchErrors(createRoute));
-router.get('/:id', catchErrors(bookRoute));
+router.get('/:id', catchErrors(bookById));
 router.patch('/:id', requireAuthentication, catchErrors(patchRoute));
 
 module.exports = router;
