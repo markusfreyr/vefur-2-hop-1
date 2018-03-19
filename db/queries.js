@@ -331,7 +331,7 @@ async function findByUsername(username) {
 }
 
 async function findById(id) {
-  const q = 'SELECT * FROM users WHERE id = $1';
+  const q = 'SELECT id, username, name, url FROM users WHERE id = $1';
 
   const result = await query(q, [id]);
 
@@ -392,6 +392,26 @@ async function updatePhoto(params) {
 
 }
 
+async function createReadBook({
+  user_id: user, book_id: book, rank, review,
+} = {}) {
+  const q = 'INSERT INTO read_books (user_id, book_id, rank, review) VALUES ($1, $2, $3, $4) RETURNING *';
+
+  const result = await query(q, [user, book, rank, review]);
+
+  if (result.error) {
+    const msg = 'Error adding read book categories';
+    return queryError(result.error, msg);
+  }
+
+  // vantar validation
+  return {
+    success: true,
+    validation: [],
+    item: result.rows[0],
+  };
+}
+
 module.exports = {
   create,
   update,
@@ -406,4 +426,5 @@ module.exports = {
   createCategory,
   patchMe,
   updatePhoto,
+  createReadBook,
 };

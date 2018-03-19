@@ -6,6 +6,7 @@ const {
   findById,
   patchMe,
   updatePhoto,
+  createReadBook,
 } = require('../db/queries');
 
 const router = express.Router();
@@ -82,6 +83,17 @@ async function userRoute(req, res) {
   return res.json(result);
 }
 
+async function postBook(req, res) {
+  const result = await createReadBook(req.body);
+
+  if (!result.success) {
+    return res.status(400).json(result.validation);
+  }
+
+  return res.status(201).json(result.item);
+}
+
+
 router.get('/:id', requireAuthentication, isItMe, catchErrors(userById));
 router.get('/', requireAuthentication, catchErrors(userRoute));
 
@@ -98,9 +110,7 @@ router.get('/me/read', (req, res, next) => {
   res.json({ error: 'ekki tilbuið' });
 });
 
-router.post('/me/read', (req, res, next) => {
-  res.json({ error: 'ekki tilbuið' });
-});
+router.post('/me/read', requireAuthentication, postBook);
 
 
 router.delete('/me/read/:id', (req, res, next) => {
