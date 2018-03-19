@@ -18,7 +18,6 @@ function validateBook({
   title, isbn13, author, description, category,
 }) {
   const errors = [];
-console.log(title, isbn13, author, description, category);
 
   // const stringPages = pages.toString();
   if (typeof title !== 'string' || !validator.isLength(title, { min: 1, max: 180 })) {
@@ -54,39 +53,6 @@ console.log(title, isbn13, author, description, category);
       message: 'Bio must be of type string',
     });
   }
-  /*
-  // Ekki krafa, en ef eitthvað slegið inn þá þarf hann að vera réttur
-  if (ISBN10 && !isbn10a.isIsbn10()) {
-    errors.push({
-      field: 'ISBN10',
-      message: 'ISBN10 must be 10 digit string made of numbers',
-    });
-  }
-
-  // Ekki krafa, en ef eitthvað slegið inn þá þarf hann að vera réttur
-  if (published && typeof published !== 'string') {
-    errors.push({
-      field: 'published',
-      message: 'The publish date must be of type string',
-    });
-  }
-
-  // Ekki krafa, en ef eitthvað slegið inn þá þarf hann að vera réttur
-  if (stringPages && !validator.isInt(stringPages, { min: 0 })) {
-    errors.push({
-      field: 'pages',
-      message: 'Pages must be a integer(can be string) larger than 0',
-    });
-  }
-
-  // Ekki krafa, en ef eitthvað slegið inn þá þarf hann að vera réttur
-  if (language && (typeof language !== 'string' || language.length !== 2)) {
-    errors.push({
-      field: 'language',
-      message: 'Language must be a string with a length of 2 charachters',
-    });
-  }
-*/
   return errors;
 }
 
@@ -185,8 +151,16 @@ async function create(params) {
 
 }
 
-async function login(params) {
+async function getUsers() {
+  const q = 'SELECT id, username, name, url FROM users';
+  const result = await query(q);
 
+  if (result.error) {
+    const msg = 'Error running query';
+    return queryError(result.error, msg);
+  }
+  const { rows } = result;
+  return rows;
 }
 
 /**
@@ -379,11 +353,12 @@ async function findById(id) {
 
   const result = await query(q, [id]);
 
-  if (result.rowCount === 1) {
-    return result.rows[0];
+  if (result.error) {
+    const msg = 'Error running query';
+    return queryError(result.error, msg);
   }
-
-  return null;
+  const { rows } = result;
+  return rows;
 }
 
 async function createUser({ username, name, password } = {}) {
@@ -417,7 +392,6 @@ async function createUser({ username, name, password } = {}) {
 
 module.exports = {
   create,
-  login,
   update,
   readOne,
   readAll,
@@ -425,6 +399,7 @@ module.exports = {
   delBook,
   findByUsername,
   findById,
+  getUsers,
   createUser,
   readCategories,
   createCategory,
