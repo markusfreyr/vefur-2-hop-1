@@ -7,18 +7,13 @@ const connectionString = process.env.DATABASE_URL || 'postgres://:@localhost/h1'
 
 
 /**
- * TODO þarf að prófa þetta fall, viljum við hafa allt þarna
- * (ekki skilda að hafa öll skilyrði í verkefni)
- * viljum við validate-a isbn tölur svona vel?
  *
  * Spurning um að færa þetta í validation.js?
  */
-// ISBN10, published, pages, language,
 function validateBook({
   title, isbn13, author, description, category,
 }) {
   const errors = [];
-console.log(title, isbn13, author, description, category);
 
   // const stringPages = pages.toString();
   if (typeof title !== 'string' || !validator.isLength(title, { min: 1, max: 180 })) {
@@ -54,39 +49,6 @@ console.log(title, isbn13, author, description, category);
       message: 'Bio must be of type string',
     });
   }
-  /*
-  // Ekki krafa, en ef eitthvað slegið inn þá þarf hann að vera réttur
-  if (ISBN10 && !isbn10a.isIsbn10()) {
-    errors.push({
-      field: 'ISBN10',
-      message: 'ISBN10 must be 10 digit string made of numbers',
-    });
-  }
-
-  // Ekki krafa, en ef eitthvað slegið inn þá þarf hann að vera réttur
-  if (published && typeof published !== 'string') {
-    errors.push({
-      field: 'published',
-      message: 'The publish date must be of type string',
-    });
-  }
-
-  // Ekki krafa, en ef eitthvað slegið inn þá þarf hann að vera réttur
-  if (stringPages && !validator.isInt(stringPages, { min: 0 })) {
-    errors.push({
-      field: 'pages',
-      message: 'Pages must be a integer(can be string) larger than 0',
-    });
-  }
-
-  // Ekki krafa, en ef eitthvað slegið inn þá þarf hann að vera réttur
-  if (language && (typeof language !== 'string' || language.length !== 2)) {
-    errors.push({
-      field: 'language',
-      message: 'Language must be a string with a length of 2 charachters',
-    });
-  }
-*/
   return errors;
 }
 
@@ -321,9 +283,6 @@ async function createBook({
   };
 }
 
-async function delBook(params) {
-
-}
 
 async function readCategories(offset, limit) {
   const q = 'SELECT * FROM categories OFFSET $1 LIMIT $2';
@@ -415,6 +374,41 @@ async function createUser({ username, name, password } = {}) {
   };
 }
 
+async function readUsers(offset, limit) {
+  const q = 'SELECT id, username, name, url FROM users OFFSET $1 LIMIT $2';
+  const result = await query(q, [offset, limit]);
+  if (result.error) {
+    const msg = 'Error reading users';
+    return queryError(result.error, msg);
+  }
+  const { rows } = result;
+  return rows;
+}
+
+async function readUser(id) {
+  const q = 'SELECT id, username, name, url FROM users WHERE id = $1';
+  const result = await query(q, [id]);
+
+  if (result.error) {
+    const msg = 'Error finding user';
+    return queryError(result.error, msg);
+  }
+
+  return result.rows[0];
+}
+
+async function readMe(params) {
+
+}
+
+async function patchMe(params) {
+
+}
+
+async function updatePhoto(params) {
+
+}
+
 module.exports = {
   create,
   login,
@@ -422,10 +416,14 @@ module.exports = {
   readOne,
   readAll,
   createBook,
-  delBook,
   findByUsername,
   findById,
   createUser,
   readCategories,
   createCategory,
+  readUsers,
+  readUser,
+  readMe,
+  patchMe,
+  updatePhoto,
 };
