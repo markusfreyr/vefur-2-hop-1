@@ -25,30 +25,22 @@ async function query(q, values = []) {
   }
 }
 
-async function create(params) {
-
-}
-
-/**
- * Fall sem les inn id og leitar í gagnagrunni af bók með þetta id.
- * Skilar object með bókaupllýsingum eða undefined ef það er engin bók með þetta id.
- * @param {*} id
- */
-async function readOne(id) {
-  const q = 'SELECT * FROM books WHERE id = $1';
-  const result = await query(q, [id]);
-
+// Fall sem les töflu 'table' með skilyrðum 'params'
+async function readAll(table, conditions, values) {
+  const q = `SELECT * FROM ${table} ${conditions}`;
+  const result = await query(q, values);
   if (result.error) {
-    const msg = 'Error finding book';
+    const msg = `Error reading table ${table}`;
     return queryError(result.error, msg);
   }
-
-  return result.rows[0];
+  const { rows } = result;
+  return rows;
 }
 
 async function update(id, body) {
   // Sækja info um bók sem á að breyta
-  const oldBook = await readOne(id);
+  const conditions = 'WHERE id = $1';
+  const oldBook = await readAll('books', conditions, [id]);
   // Ef bókin sem á að breyta er ekki til/fannst ekki
   if (!oldBook) {
     return {
@@ -102,18 +94,6 @@ async function update(id, body) {
     validation: [],
     item: result.rows[0],
   };
-}
-
-
-async function readAll(table, offset, limit) {
-  const q = `SELECT * FROM ${table} OFFSET $1 LIMIT $2`;
-  const result = await query(q, [offset, limit]);
-  if (result.error) {
-    const msg = `Error reading table ${table}`;
-    return queryError(result.error, msg);
-  }
-  const { rows } = result;
-  return rows;
 }
 
 async function createBook({
@@ -199,19 +179,6 @@ async function findByUsername(username) {
   return null;
 }
 
-async function findById(id) {
-  const q = 'SELECT id, username, name, url FROM users WHERE id = $1';
-
-  const result = await query(q, [id]);
-
-  if (result.error) {
-    const msg = 'Error running query';
-    return queryError(result.error, msg);
-  }
-  const { rows } = result;
-  return rows;
-}
-
 async function createUser({ username, name, password } = {}) {
   const validation = validateUser({ username, name, password });
 
@@ -241,11 +208,11 @@ async function createUser({ username, name, password } = {}) {
   };
 }
 
-async function readUsers(offset, limit) {
-  const q = 'SELECT id, username, name, url FROM users OFFSET $1 LIMIT $2';
-  const result = await query(q, [offset, limit]);
+async function readUsers(params, values) {
+  const q = `SELECT id, username, name, url FROM users ${params}`;
+  const result = await query(q, values);
   if (result.error) {
-    const msg = 'Error reading users';
+    const msg = 'Error reading table users';
     return queryError(result.error, msg);
   }
   const { rows } = result;
@@ -295,13 +262,10 @@ async function getReadBooks(id) {
 }
 
 module.exports = {
-  create,
   update,
-  readOne,
   readAll,
   createBook,
   findByUsername,
-  findById,
   readUsers,
   createUser,
   createCategory,

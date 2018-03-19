@@ -2,11 +2,11 @@ const express = require('express');
 const { requireAuthentication } = require('../authenticate');
 const {
   createBook,
-  readOne,
+  readAll,
   update,
 } = require('../db/queries');
 
-const { getAll } = require('./utils');
+const { getAll } = require('../db/utils');
 
 const router = express.Router();
 
@@ -21,10 +21,12 @@ async function booksRoute(req, res) {
 async function bookById(req, res) {
   const { id } = req.params;
 
-  const book = await readOne(id);
+  // skilyrðið aftast í queri-ið
+  const conditions = 'WHERE id = $1';
+  const book = await readAll('books', conditions, [id]);
 
   // Ath hvort til sé bók með þessu id
-  if (book) {
+  if (book[0]) {
     return res.json(book);
   }
 
