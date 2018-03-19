@@ -147,8 +147,16 @@ async function create(params) {
 
 }
 
-async function login(params) {
+async function getUsers() {
+  const q = 'SELECT id, username, name, url FROM users';
+  const result = await query(q);
 
+  if (result.error) {
+    const msg = 'Error running query';
+    return queryError(result.error, msg);
+  }
+  const { rows } = result;
+  return rows;
 }
 
 /**
@@ -338,11 +346,12 @@ async function findById(id) {
 
   const result = await query(q, [id]);
 
-  if (result.rowCount === 1) {
-    return result.rows[0];
+  if (result.error) {
+    const msg = 'Error running query';
+    return queryError(result.error, msg);
   }
-
-  return null;
+  const { rows } = result;
+  return rows;
 }
 
 async function createUser({ username, name, password } = {}) {
@@ -411,13 +420,13 @@ async function updatePhoto(params) {
 
 module.exports = {
   create,
-  login,
   update,
   readOne,
   readAll,
   createBook,
   findByUsername,
   findById,
+  getUsers,
   createUser,
   readCategories,
   createCategory,
