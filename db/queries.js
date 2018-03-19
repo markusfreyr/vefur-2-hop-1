@@ -223,8 +223,16 @@ async function patchMe(params) {
 
 }
 
-async function updatePhoto(params) {
+async function updatePhoto(id, url) {
+  const q = 'UPDATE users SET url=$1 WHERE id=$2 RETURNING id, username, name, url';
+  const result = await query(q, [url, id]);
 
+  if (result.error) {
+    const msg = 'Error reading table users';
+    return queryError(result.error, msg);
+  }
+  const { rows } = result;
+  return rows;
 }
 
 async function createReadBook({

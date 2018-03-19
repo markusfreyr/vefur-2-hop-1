@@ -1,16 +1,19 @@
 const express = require('express');
 const { requireAuthentication } = require('../authenticate');
+const multer = require('multer');
 
 const {
   patchMe,
-  updatePhoto,
   createReadBook,
   getReadBooks,
   readUsers,
+  updatePhoto,
 } = require('../db/queries');
+const { upload } = require('../db/cloud');
 const { getAll } = require('../db/utils');
 
 const router = express.Router();
+const uploads = multer();
 
 
 function catchErrors(fn) {
@@ -76,16 +79,30 @@ async function userBooks(req, res) {
   return res.status(200).json(result);
 }
 
+async function uploadImg(req, res) {
+  const { file: { buffer } = {} } = req;
+
+  const url = await upload(buffer);
+
+  if (url.error) {
+    res.json(url);
+  }
+  const { id } = req.user[0];
+  const result = await updatePhoto(id, url);
+
+  if (result.error) {
+    return res.status(400).json(result.error);
+  }
+
+  return res.status(200).json(result);
+}
+
 
 router.get('/:id', requireAuthentication, isItMe, catchErrors(userById));
 router.get('/', requireAuthentication, catchErrors(userRoute));
 router.get('/:id/read', requireAuthentication, catchErrors(userBooks));
 router.post('/me/read', requireAuthentication, postBook);
-
-
-router.post('/me/profile', (req, res, next) => {
-  res.json({ error: 'ekki tilbuið' });
-});
+router.post('/me/profile', requireAuthentication, uploads.single('profile'), uploadImg);
 
 
 router.delete('/me/read/:id', (req, res, next) => {
