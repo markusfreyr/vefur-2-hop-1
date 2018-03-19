@@ -105,11 +105,11 @@ async function update(id, body) {
 }
 
 
-async function readAll(offset, limit) {
-  const q = 'SELECT * FROM books OFFSET $1 LIMIT $2';
+async function readAll(table, offset, limit) {
+  const q = `SELECT * FROM ${table} OFFSET $1 LIMIT $2`;
   const result = await query(q, [offset, limit]);
   if (result.error) {
-    const msg = 'Error reading books';
+    const msg = `Error reading table ${table}`;
     return queryError(result.error, msg);
   }
   const { rows } = result;
@@ -159,18 +159,6 @@ async function createBook({
     validation: [],
     item: result.rows[0],
   };
-}
-
-
-async function readCategories(offset, limit) {
-  const q = 'SELECT * FROM categories OFFSET $1 LIMIT $2';
-  const result = await query(q, [offset, limit]);
-  if (result.error) {
-    const msg = 'Error reading categories';
-    return queryError(result.error, msg);
-  }
-  const { rows } = result;
-  return rows;
 }
 
 async function createCategory({ name }) {
@@ -253,7 +241,7 @@ async function createUser({ username, name, password } = {}) {
   };
 }
 
-async function getUsers(offset, limit) {
+async function readUsers(offset, limit) {
   const q = 'SELECT id, username, name, url FROM users OFFSET $1 LIMIT $2';
   const result = await query(q, [offset, limit]);
   if (result.error) {
@@ -314,9 +302,8 @@ module.exports = {
   createBook,
   findByUsername,
   findById,
-  getUsers,
+  readUsers,
   createUser,
-  readCategories,
   createCategory,
   patchMe,
   updatePhoto,
