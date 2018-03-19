@@ -7,8 +7,9 @@ const {
   updatePhoto,
   createReadBook,
   getReadBooks,
+  readUsers,
 } = require('../db/queries');
-const { getAll } = require('./utils');
+const { getAll } = require('../db/utils');
 
 const router = express.Router();
 
@@ -20,7 +21,8 @@ function catchErrors(fn) {
 async function userById(req, res) {
   const { id } = req.params;
 
-  const result = await findById(id);
+  const conditions = 'WHERE id = $1';
+  const result = await readUsers(conditions, [id]);
 
   if (result.error) {
     return res.status(400).json(result.error);

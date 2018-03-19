@@ -10,11 +10,16 @@ async function getAll(q, table) {
   offset = Number(offset);
   limit = Number(limit);
 
+  // skilyrði sem er sett aftast í query svo það þurfi ekki að gera of mörg query föll
+  const conditions = 'OFFSET $1 LIMIT $2';
+  // values send með í query
+  const values = [offset, limit];
+
   let rows;
   if (table === 'users') {
-    rows = await readUsers(offset, limit);
+    rows = await readUsers(conditions, values);
   } else {
-    rows = await readAll(table, offset, limit);
+    rows = await readAll(table, conditions, values);
   }
 
   const result = {
