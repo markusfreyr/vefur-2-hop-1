@@ -6,11 +6,11 @@ const {
   searchBooks,
 } = require('../db/queries');
 
-async function makeResult(rows, table, offset, limit, url) {
+async function makeResult(rows, table, offset, limit, url, search) {
   const result = {
     links: {
       self: {
-        href: `http://${url}/${table}/?offset=${offset}&limit=${limit}`,
+        href: `http://${url}/${table}${search}offset=${offset}&limit=${limit}`,
       },
     },
     limit,
@@ -21,14 +21,14 @@ async function makeResult(rows, table, offset, limit, url) {
   // Ef þetta er ekki fyrsta síða, þá setjum við 'prev' síðu
   if (offset > 0) {
     result.links.prev = {
-      href: `http://${url}/${table}/?offset=${offset - limit}&limit=${limit}`,
+      href: `http://${url}/${table}${search}offset=${offset - limit}&limit=${limit}`,
     };
   }
 
   // Ef raðir færri en limit þá kemur ekki next síða
   if (!(rows.length < limit)) {
     result.links.next = {
-      href: `http://${url}/${table}/?offset=${Number(offset) + limit}&limit=${limit}`,
+      href: `http://${url}/${table}${search}offset=${Number(offset) + limit}&limit=${limit}`,
     };
   }
 
@@ -45,11 +45,16 @@ async function getAll(req, table) {
 
   const url = req.get('host');
 
+  // Ath hvort það sé verið að leita í gagagrunni
   if (search) {
+    // sent inn í makeResult til að hafa offset og limit rétt þegar það er leitað
+    const searchString = `?search=${search}&`;
+    // Ef leitað var með '-' inní streng túlkum við það sem bil
     const withSpaceSearch = search.replace(/-/g, ' ');
+    // Values send með inn í query
     const values = [withSpaceSearch, offset, limit];
     const rows = await searchBooks(values);
-    return makeResult(rows, 'books', offset, limit, url);
+    return makeResult(rows, 'books', offset, limit, url, searchString);
   }
 
   // skilyrði sem er sett aftast í query svo það þurfi ekki að gera of mörg query föll
@@ -64,7 +69,7 @@ async function getAll(req, table) {
     rows = await readAll(table, conditions, values);
   }
 
-  return makeResult(rows, table, offset, limit, url);
+  return makeResult(rows, table, offset, limit, url, '/?');
 }
 
 module.exports = { getAll };
