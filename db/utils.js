@@ -53,7 +53,7 @@ async function getAll(req, table) {
   }
 
   // skilyrði sem er sett aftast í query svo það þurfi ekki að gera of mörg query föll
-  const conditions = 'OFFSET $1 LIMIT $2';
+  const conditions = 'ORDER BY id OFFSET $1 LIMIT $2';
   // values send með í query
   const values = [offset, limit];
 
