@@ -13,7 +13,7 @@ const router = express.Router();
 
 // Fall sem kallar á getAll til að sækja bækur
 async function booksRoute(req, res) {
-  const result = await getAll(req.query, 'books');
+  const result = await getAll(req, 'books');
   return res.json(result);
 }
 
