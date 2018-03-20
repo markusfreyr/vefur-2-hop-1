@@ -45,7 +45,7 @@ async function getAll(req, table) {
 
   const url = req.get('host');
 
-  // Ath hvort það sé verið að leita í gagagrunni
+  // Ath hvort það sé verið að leita í gagagrunni (ef ekki er honum öllum skilað)
   if (search) {
     // sent inn í makeResult til að hafa offset og limit rétt þegar það er leitað
     const searchString = `?search=${search}&`;
