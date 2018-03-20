@@ -101,8 +101,8 @@ async function uploadImg(req, res) {
 router.get('/:id', requireAuthentication, isItMe, catchErrors(userById));
 router.get('/', requireAuthentication, catchErrors(userRoute));
 router.get('/:id/read', requireAuthentication, catchErrors(userBooks));
-router.post('/me/read', requireAuthentication, postBook);
-router.post('/me/profile', requireAuthentication, uploads.single('profile'), uploadImg);
+router.post('/me/read', requireAuthentication, catchErrors(postBook));
+router.post('/me/profile', requireAuthentication, uploads.single('profile'), catchErrors(uploadImg));
 
 
 router.delete('/me/read/:id', (req, res, next) => {

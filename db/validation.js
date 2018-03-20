@@ -84,18 +84,12 @@ function validateUser({
 }
 
 function queryError(err, msg) {
-  // 23505 er error kóði fyrir unique violation
-  // 23503 er error kóði fyrir foreign key violation
-  if (err.code === '23505' || err.code === '23503') {
-    return {
-      success: false,
-      validation: [{ error: err.code }],
-      item: '',
-    };
-  }
-  // Ef það var ekki 23505 eða 23503 villa þá er það óþekkt villa sem við köstum
   console.error(msg, err);
-  throw err;
+  return {
+    success: false,
+    validation: [{ error: err }],
+    item: '',
+  };
 }
 
 module.exports = {
