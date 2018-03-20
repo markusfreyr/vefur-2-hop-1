@@ -224,9 +224,16 @@ async function patchMe(req) {
   const user = await query(qq, [req.user[0].id]);
 
   const {
-    username = user.rows[0].username,
-    name = user.rows[0].name,
-    password = user.rows[0].password,
+    username: oldUsername,
+    name: oldName,
+    password: oldPassword,
+    id: userId,
+  } = user.rows[0];
+
+  const {
+    username = oldUsername,
+    name = oldName,
+    password = oldPassword,
   } = req.body;
 
   let validation;
@@ -247,9 +254,8 @@ async function patchMe(req) {
     ? await bcrypt.hash(password, 11)
     : password;
 
-
-  const q = 'UPDATE users SET (username, password, name)  = ($1, $2, $3) returning id, username, name, url';
-  const values = [username, hashedPassword, name];
+  const q = 'UPDATE users SET (password, name)  = ($1, $2) WHERE id = $3 RETURNING id, username, name, url';
+  const values = [hashedPassword, name, userId];
 
   const result = await query(q, values);
 

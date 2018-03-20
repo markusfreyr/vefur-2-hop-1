@@ -4,7 +4,6 @@ const users = require('./db/queries');
 const passport = require('passport');
 const { Strategy, ExtractJwt } = require('passport-jwt');
 const jwt = require('jsonwebtoken');
-const queries = require('./db/queries');
 
 const auth = express();
 
@@ -24,7 +23,7 @@ const jwtOptions = {
 };
 
 async function strat(data, next) {
-  const user = await queries.readUsers('WHERE id = $1', [data.id]);
+  const user = await users.readUsers('WHERE id = $1', [data.id]);
 
   if (user) {
     next(null, user);
@@ -83,8 +82,6 @@ function requireAuthentication(req, res, next) {
 }
 
 module.exports = {
-  comparePasswords,
-  auth,
   login,
   requireAuthentication,
 };
