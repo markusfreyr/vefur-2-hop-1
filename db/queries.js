@@ -310,7 +310,7 @@ async function getReadBooks(id) {
 }
 
 async function searchBooks(values) {
-  const q = "SELECT * FROM books WHERE to_tsvector(title || ' ' || description) @@ plainto_tsquery($1) OFFSET $2 LIMIT $3";
+  const q = "SELECT * FROM books WHERE to_tsvector(title || ' ' || description) @@ plainto_tsquery($1) ORDER BY id OFFSET $2 LIMIT $3";
   const result = await query(q, values);
 
   if (result.error) {
