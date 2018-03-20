@@ -20,7 +20,7 @@ async function categoriesRoute(req, res) {
 async function createRoute(req, res) {
   const { name } = req.body;
 
-  const result = await createCategory({ name });
+  const result = await createCategory(name);
 
   if (!result.success) {
     return res.status(400).json(result.validation);

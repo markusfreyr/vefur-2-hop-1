@@ -1,3 +1,5 @@
+const xss = require('xss');
+
 const {
   readAll,
   readUsers,
@@ -34,14 +36,16 @@ async function makeResult(rows, table, offset, limit) {
 }
 
 // fall sem les allt úr töflu (books, categories eða users)
-async function getAll(q, table) {
+async function getAll(body, table) {
   // frumstilla offset, limit og search ef ekkert var slegið inn
-  let { offset = 0, limit = 10, search = null } = q;
+  let { offset = 0, limit = 10, search = null } = body;
   offset = Number(offset);
   limit = Number(limit);
+  search = xss(search);
 
   if (search) {
-    const values = [search, offset, limit];
+    const withSpaceSearch = search.replace(/-/g, ' ');
+    const values = [withSpaceSearch, offset, limit];
     const rows = await searchBooks(values);
     return makeResult(rows, 'books', offset, limit);
   }
