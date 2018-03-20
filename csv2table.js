@@ -47,8 +47,8 @@ async function makeBooks(data) {
 async function main() {
   const data = await read(input);
   const parsed = parse(data);
-  makeCategories(parsed.data);
-  makeBooks(parsed.data);
+  await makeCategories(parsed.data);
+  await makeBooks(parsed.data);
 }
 
 main();
