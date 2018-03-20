@@ -48,7 +48,7 @@ function isItMe(req, res, next) {
 
 // Fall sem kallar á readUsers til að lesa notendur
 async function userRoute(req, res) {
-  const result = await getAll(req.query, 'users');
+  const result = await getAll(req, 'users');
   return res.json(result);
 }
 

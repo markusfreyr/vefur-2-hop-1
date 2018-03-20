@@ -12,7 +12,7 @@ function catchErrors(fn) {
 
 // Fall sem kallar á readCategories til að sýna alla bóka flokka
 async function categoriesRoute(req, res) {
-  const result = await getAll(req.query, 'categories');
+  const result = await getAll(req, 'categories');
   return res.json(result);
 }
 
