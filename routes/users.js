@@ -8,6 +8,7 @@ const {
   getReadBooks,
   readUsers,
   updatePhoto,
+  del,
 } = require('../db/queries');
 const { upload } = require('../db/cloud');
 const { getAll } = require('../db/utils');
@@ -53,7 +54,7 @@ async function userRoute(req, res) {
 }
 
 async function postBook(req, res) {
-  const result = await createReadBook(req.body);
+  const result = await createReadBook(req.user[0].id, req.body);
 
   if (!result.success) {
     return res.status(400).json(result.validation);
@@ -98,15 +99,36 @@ async function uploadImg(req, res) {
 }
 
 
+async function deleteBook(req, res) {
+  const result = await del(req.params.id, req);
+
+  if (result.length === 0) {
+    return res.status(404).json({ error: 'Book Not Found' });
+  }
+
+  if (result.error) {
+    return res.status(400).json(result.error);
+  }
+
+  return res.status(200).json(result);
+}
+
+async function patchUser(req, res) {
+  const result = await patchMe(req);
+
+  if (result.error) {
+    return res.status(400).json(result.error);
+  }
+
+  return res.status(200).json(result.item);
+}
+
 router.get('/:id', requireAuthentication, isItMe, catchErrors(userById));
 router.get('/', requireAuthentication, catchErrors(userRoute));
 router.get('/:id/read', requireAuthentication, catchErrors(userBooks));
 router.post('/me/read', requireAuthentication, catchErrors(postBook));
 router.post('/me/profile', requireAuthentication, uploads.single('profile'), catchErrors(uploadImg));
-
-
-router.delete('/me/read/:id', (req, res, next) => {
-  res.json({ error: 'ekki tilbuið' });
-});
+router.delete('/me/read/:id', requireAuthentication, catchErrors(deleteBook));
+router.patch('/me', requireAuthentication, catchErrors(patchUser));
 
 module.exports = router;

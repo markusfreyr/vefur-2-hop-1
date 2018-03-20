@@ -219,10 +219,51 @@ async function readUsers(params, values) {
 }
 
 
-async function patchMe(params) {
+async function patchMe(req) {
+  const qq = 'SELECT * FROM users WHERE id = $1';
+  const user = await query(qq, [req.user[0].id]);
 
+  const {
+    username = user.rows[0].username,
+    name = user.rows[0].name,
+    password = user.rows[0].password,
+  } = req.body;
+
+  let validation;
+  if (req.body.password) {
+    validation = validateUser({ username, name, password });
+  } else {
+    validation = validateUser({ username, name, password: 'isGood' });
+  }
+
+  if (validation.length > 0) {
+    return {
+      success: false,
+      validation,
+    };
+  }
+
+  const hashedPassword = req.body.password
+    ? await bcrypt.hash(password, 11)
+    : password;
+
+
+  const q = 'UPDATE users SET (username, password, name)  = ($1, $2, $3) returning id, username, name, url';
+  const values = [username, hashedPassword, name];
+
+  const result = await query(q, values);
+
+  if (result.error) {
+    const msg = 'Error updating user';
+    return queryError(result.error, msg);
+  }
+
+  return {
+    success: true,
+    validation: [],
+    item: result.rows,
+  };
 }
-
 async function updatePhoto(id, url) {
   const q = 'UPDATE users SET url=$1 WHERE id=$2 RETURNING id, username, name, url';
   const result = await query(q, [url, id]);
@@ -235,8 +276,8 @@ async function updatePhoto(id, url) {
   return rows;
 }
 
-async function createReadBook({
-  user_id: user, book_id: book, rank, review,
+async function createReadBook(user, {
+  book_id: book, rank, review,
 } = {}) {
   const q = 'INSERT INTO read_books (user_id, book_id, rank, review) VALUES ($1, $2, $3, $4) RETURNING *';
 
@@ -280,6 +321,20 @@ async function searchBooks(values) {
   return rows;
 }
 
+async function del(id, req) {
+  const q = 'DELETE FROM read_books WHERE book_id = $1 AND user_id = $2 returning *';
+
+  const result = await query(q, [id, req.user[0].id]);
+
+  if (result.error) {
+    const msg = 'Error running query';
+    return queryError(result.error, msg);
+  }
+  const { rows } = result;
+
+  return rows;
+}
+
 module.exports = {
   update,
   readAll,
@@ -293,4 +348,5 @@ module.exports = {
   createReadBook,
   getReadBooks,
   searchBooks,
+  del,
 };
