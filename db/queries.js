@@ -42,7 +42,7 @@ async function update(id, body) {
   const conditions = 'WHERE id = $1';
   const oldBook = await readAll('books', conditions, [id]);
   // Ef bókin sem á að breyta er ekki til/fannst ekki
-  if (!oldBook) {
+  if (!oldBook[0]) {
     return {
       success: false,
       notfound: true,
