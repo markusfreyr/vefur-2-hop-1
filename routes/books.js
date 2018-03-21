@@ -34,7 +34,6 @@ async function bookById(req, res) {
 }
 
 // Fall sem býr til bók
-// TODO ákveða hvaða hlutir verða teknir inn (ekki gerð krafa um alla þessa)
 async function createRoute(req, res) {
   const result = await createBook(req.body);
 

@@ -21,9 +21,6 @@ function parse(data) {
   });
 }
 
-// þarf að gera betur prófaði forEach, en það hinkrar ekki eftir
-// await. Þetta virkar fínt en eslint kvartar, óli minnist á þetta
-// í verkefnalýsingu. svo er ez að gera books, same same!
 async function makeCategories(data) {
   for (const book of data) { //eslint-disable-line
     const { category = '' } = book;

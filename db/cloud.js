@@ -38,10 +38,6 @@ async function upload(buffer) {
   return url;
 }
 
-
-/* app.post('/upload', uploads.single('image'), upload); */
-
-
 module.exports = {
   upload,
 };

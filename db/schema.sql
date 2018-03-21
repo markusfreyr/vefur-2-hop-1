@@ -6,7 +6,7 @@ create table users (
     username varchar(64) UNIQUE NOT NULL,
     password varchar(64) NOT NULL,
     name varchar(64) NOT NULL,
-    url varchar(124)
+    profile varchar(124)
 );
 
 create table categories(

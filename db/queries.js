@@ -200,7 +200,6 @@ async function createUser({ username, name, password } = {}) {
     return queryError(result.error, msg);
   }
 
-  // vantar validation
   return {
     success: true,
     validation: [],

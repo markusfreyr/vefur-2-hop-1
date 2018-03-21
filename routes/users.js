@@ -30,7 +30,7 @@ async function userById(req, res) {
   if (result.error) {
     return res.status(400).json(result.error);
   }
-  // þarf að bæta 404 meðhöndlunina í app.js og breyta þessu svo
+
   if (result.length === 0) {
     return res.status(404).json({ error: `User id: ${id} not found` });
   }
