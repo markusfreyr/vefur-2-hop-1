@@ -83,6 +83,33 @@ function validateUser({
   return errors;
 }
 
+function readBookvalidation({ book, rank, review }) {
+  const errors = [];
+
+  if (typeof book !== 'string' || Number.isNaN(parseInt(book, 10))) {
+    errors.push({
+      field: 'book_id',
+      message: 'Book id must be a string of numbers',
+    });
+  }
+
+  if (typeof rank !== 'string' || Number.isNaN(parseInt(rank, 10)) || rank > 5 || rank < 0) {
+    errors.push({
+      field: 'rank',
+      message: 'Rank must be a string of numbers between 1 and 5',
+    });
+  }
+
+  if (review && typeof review !== 'string') {
+    errors.push({
+      field: 'review',
+      message: 'Review must be of type string',
+    });
+  }
+
+  return errors;
+}
+
 function queryError(err, msg) {
   console.error(msg, err);
   return {
@@ -97,4 +124,5 @@ module.exports = {
   validateCategory,
   validateUser,
   queryError,
+  readBookvalidation,
 };

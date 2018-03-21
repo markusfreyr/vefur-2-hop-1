@@ -27,6 +27,6 @@ create table read_books(
     id SERIAL PRIMARY KEY,
     user_id INTEGER references users(id),
     book_id INTEGER references books(id),
-    rank varchar(1),
+    rank varchar(1) NOT NULL,
     review text 
 );

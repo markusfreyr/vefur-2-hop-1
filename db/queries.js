@@ -9,6 +9,7 @@ const {
   validateCategory,
   validateUser,
   queryError,
+  readBookvalidation,
 } = require('../utils/validation');
 
 async function query(q, values = []) {
@@ -284,6 +285,15 @@ async function updatePhoto(id, url) {
 async function createReadBook(user, {
   book_id: book, rank, review,
 } = {}) {
+  const validation = readBookvalidation({ book, rank, review });
+
+  if (validation.length > 0) {
+    return {
+      success: false,
+      validation,
+    };
+  }
+
   const q = 'INSERT INTO read_books (user_id, book_id, rank, review) VALUES ($1, $2, $3, $4) RETURNING *';
 
   const result = await query(q, [user, book, rank, review]);
