@@ -237,9 +237,9 @@ async function patchMe(req) {
 
   let validation;
   if (req.body.password) {
-    validation = validateUser({ username, name, password });
+    validation = validateUser({ oldUsername, name, password });
   } else {
-    validation = validateUser({ username, name, password: 'isGood' });
+    validation = validateUser({ oldUsername, name, password: 'isGood' });
   }
 
   if (validation.length > 0) {
