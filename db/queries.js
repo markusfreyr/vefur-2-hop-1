@@ -51,11 +51,11 @@ async function update(id, body) {
 
   // object sem er jafnt því sem var sent inn, þar sem ekkert var sent er það eins (oldBook)
   const {
-    title = oldBook.title,
-    isbn13 = oldBook.isbn13,
-    author = oldBook.author,
-    description = oldBook.description,
-    category = oldBook.category,
+    title = oldBook[0].title,
+    isbn13 = oldBook[0].isbn13,
+    author = oldBook[0].author,
+    description = oldBook[0].description,
+    category = oldBook[0].category,
   } = body;
 
   const validation = validateBook({
