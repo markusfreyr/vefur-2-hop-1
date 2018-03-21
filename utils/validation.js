@@ -93,7 +93,7 @@ function readBookvalidation({ book, rank, review }) {
     });
   }
 
-  if (typeof rank !== 'string' || Number.isNaN(parseInt(rank, 10)) || rank > 5 || rank < 0) {
+  if (typeof rank !== 'string' || Number.isNaN(parseInt(rank, 10)) || rank > 5 || rank < 0 || rank.length === 1) {
     errors.push({
       field: 'rank',
       message: 'Rank must be a string of numbers between 1 and 5',
