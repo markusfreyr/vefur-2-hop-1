@@ -336,7 +336,7 @@ async function searchBooks(values) {
 }
 
 async function del(id, req) {
-  const q = 'DELETE FROM read_books WHERE book_id = $1 AND user_id = $2 returning *';
+  const q = 'DELETE FROM read_books WHERE id = $1 AND user_id = $2 returning *';
 
   const result = await query(q, [id, req.user[0].id]);
 

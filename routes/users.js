@@ -57,7 +57,11 @@ async function postBook(req, res) {
   const result = await createReadBook(req.user[0].id, req.body);
 
   if (!result.success) {
-    const errorMsg = result.validation[0].error.code === '23503'
+    const { code } = result.validation[0].error
+      ? result.validation[0].error
+      : '0';
+
+    const errorMsg = code === '23503'
       ? res.status(404).json({ error: 'Book id not found' })
       : res.status(400).json(result.validation);
 
