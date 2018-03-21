@@ -191,7 +191,7 @@ async function createUser({ username, name, password } = {}) {
 
   const hashedPassword = await bcrypt.hash(password, 11);
 
-  const q = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING id, username, name';
+  const q = 'INSERT INTO users (username, name, password) VALUES ($1, $2, $3) RETURNING id, username, name, profile';
 
   const result = await query(q, [username, name, hashedPassword]);
 
