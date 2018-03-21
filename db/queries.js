@@ -208,7 +208,7 @@ async function createUser({ username, name, password } = {}) {
 }
 
 async function readUsers(params, values) {
-  const q = `SELECT id, username, name, url FROM users ${params}`;
+  const q = `SELECT id, username, name, profile FROM users ${params}`;
   const result = await query(q, values);
   if (result.error) {
     const msg = 'Error reading table users';
@@ -253,7 +253,7 @@ async function patchMe(req) {
     ? await bcrypt.hash(password, 11)
     : password;
 
-  const q = 'UPDATE users SET (password, name)  = ($1, $2) WHERE id = $3 RETURNING id, username, name, url';
+  const q = 'UPDATE users SET (password, name)  = ($1, $2) WHERE id = $3 RETURNING id, username, name, profile';
   const values = [hashedPassword, name, userId];
 
   const result = await query(q, values);
@@ -270,7 +270,7 @@ async function patchMe(req) {
   };
 }
 async function updatePhoto(id, url) {
-  const q = 'UPDATE users SET url=$1 WHERE id=$2 RETURNING id, username, name, url';
+  const q = 'UPDATE users SET profile=$1 WHERE id=$2 RETURNING id, username, name, profile';
   const result = await query(q, [url, id]);
 
   if (result.error) {
