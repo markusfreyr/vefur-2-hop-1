@@ -73,7 +73,7 @@ function validateUser({
     });
   }
 
-  if (!validator.isLength(name, { min: 0, max: 30 })) {
+  if (!validator.isLength(name, { min: 1, max: 30 })) {
     errors.push({
       field: 'name',
       message: 'Name must be a string of length 1 to 255 characters',
