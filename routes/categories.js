@@ -1,7 +1,7 @@
 const express = require('express');
-const { requireAuthentication } = require('../authenticate');
+const { requireAuthentication } = require('../utils/authenticate');
 const { createCategory } = require('../db/queries');
-const { getAll } = require('../db/utils');
+const { getAll } = require('../utils/utils');
 
 const router = express.Router();
 

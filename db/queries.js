@@ -9,7 +9,7 @@ const {
   validateCategory,
   validateUser,
   queryError,
-} = require('./validation');
+} = require('../utils/validation');
 
 async function query(q, values = []) {
   const client = new Client({ connectionString });

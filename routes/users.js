@@ -1,5 +1,5 @@
 const express = require('express');
-const { requireAuthentication } = require('../authenticate');
+const { requireAuthentication } = require('../utils/authenticate');
 const multer = require('multer');
 
 const {
@@ -11,7 +11,7 @@ const {
   del,
 } = require('../db/queries');
 const { upload } = require('../db/cloud');
-const { getAll } = require('../db/utils');
+const { getAll } = require('../utils/utils');
 
 const router = express.Router();
 const uploads = multer();

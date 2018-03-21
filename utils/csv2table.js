@@ -1,7 +1,7 @@
 const Papa = require('papaparse');
 const fs = require('fs');
 const util = require('util');
-const { createBook, createCategory } = require('./db/queries');
+const { createBook, createCategory } = require('../db/queries');
 
 const readFileAsync = util.promisify(fs.readFile);
 
