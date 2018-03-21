@@ -116,8 +116,11 @@ async function deleteBook(req, res) {
 async function patchUser(req, res) {
   const result = await patchMe(req);
 
-  if (result.error) {
-    return res.status(400).json(result.error);
+  if (result.success) {
+    const errorMsg = result.error
+      ? res.status(400).json(result.error)
+      : res.status(400).json(result.validation);
+    return errorMsg;
   }
 
   return res.status(200).json(result.item);
