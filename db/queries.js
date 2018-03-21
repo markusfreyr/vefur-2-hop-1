@@ -224,14 +224,13 @@ async function patchMe(req) {
   const user = await query(qq, [req.user[0].id]);
 
   const {
-    username: oldUsername,
+    username,
     name: oldName,
     password: oldPassword,
     id: userId,
   } = user.rows[0];
 
   const {
-    username = oldUsername,
     name = oldName,
     password = oldPassword,
   } = req.body;
