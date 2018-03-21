@@ -12,7 +12,7 @@ function validateBook({
       message: 'Title must be a string of length 1 to 100 characters',
     });
   }
-  if (!isbn13 || typeof isbn13 !== 'string' || Number.isNaN(isbn13) || !validator.isLength(isbn13, 13)) {
+  if (!isbn13 || typeof isbn13 !== 'string' || Number.isNaN(parseInt(isbn13, 10)) || !validator.isLength(isbn13, 13)) {
     errors.push({
       field: 'isbn13',
       message: 'ISBN13 must be 13 digit string made of numbers',
