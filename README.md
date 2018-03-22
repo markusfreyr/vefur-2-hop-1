@@ -3,7 +3,7 @@
 Fyrsta hópverkefni í Vefforritun2 2018.
 
 ## About
-Verkefnið snýst um að búa til vefþjónustu ofan á fyrir bókasafn, setja upp gagnagrunna og sjá um notendaumsjón.
+Verkefnið snýst um að búa til vefþjónustu fyrir bókasafn, setja upp gagnagrunna og sjá um notendaumsjón.
 
 Til þess að prófa vefþjónustuna er mælt með [Postman](https://www.getpostman.com/).
 
