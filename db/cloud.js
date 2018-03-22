@@ -30,7 +30,7 @@ async function upload(buffer) {
   try {
     img = await cloudinary.uploader.upload(`data:image/gif;base64,${encodedBuffer}`);
   } catch (error) {
-    throw error;
+    return { error: 'Unable to upload image' };
   }
 
   const { secure_url: url } = img;

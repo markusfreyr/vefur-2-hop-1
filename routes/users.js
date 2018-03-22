@@ -14,8 +14,7 @@ const { upload } = require('../db/cloud');
 const { getAll } = require('../utils/utils');
 
 const router = express.Router();
-const uploads = multer();
-
+const uploads = multer().single('profile');
 
 function catchErrors(fn) {
   return (req, res, next) => fn(req, res, next).catch(next);
@@ -89,12 +88,12 @@ async function userBooks(req, res) {
 }
 
 async function uploadImg(req, res) {
-  const { file: { buffer } = {} } = req;
+  const { file: { buffer } = {} } = await req;
 
   const url = await upload(buffer);
 
   if (url.error) {
-    res.json(url);
+    res.json(url.error);
   }
   const { id } = req.user[0];
   const result = await updatePhoto(id, url);
@@ -103,7 +102,7 @@ async function uploadImg(req, res) {
     return res.status(400).json(result.error);
   }
 
-  return res.status(200).json(result);
+  return res.status(201).json(result);
 }
 
 
@@ -134,11 +133,20 @@ async function patchUser(req, res) {
   return res.status(200).json(result.item);
 }
 
+function catchUploadError(req, res, next) {
+  uploads(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: 'Unable to read image' });
+    }
+    return next();
+  });
+}
+
 router.get('/:id', requireAuthentication, isItMe, catchErrors(userById));
 router.get('/', requireAuthentication, catchErrors(userRoute));
 router.get('/:id/read', requireAuthentication, catchErrors(userBooks));
 router.post('/me/read', requireAuthentication, catchErrors(postBook));
-router.post('/me/profile', requireAuthentication, uploads.single('profile'), catchErrors(uploadImg));
+router.post('/me/profile', requireAuthentication, catchUploadError, catchErrors(uploadImg));
 router.delete('/me/read/:id', requireAuthentication, catchErrors(deleteBook));
 router.patch('/me', requireAuthentication, catchErrors(patchUser));
 
