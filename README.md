@@ -2,11 +2,8 @@
 
 Fyrsta hópverkefni í Vefforritun2 2018.
 
-* [Redis](https://redis.io/) - NoSQL gagnagrunnur
-* [Cheerio](https://github.com/cheeriojs/cheerio) - Implementation af Jquery
-
 ## About
-Verkefnið snérist um að búa til vefþjónustu ofan á fyrir bókasafn, setja upp gagnagrunna og sjá um notendaumsjón.
+Verkefnið snýst um að búa til vefþjónustu ofan á fyrir bókasafn, setja upp gagnagrunna og sjá um notendaumsjón.
 
 Til þess að prófa vefþjónustuna er mælt með [Postman](https://www.getpostman.com/).
 
