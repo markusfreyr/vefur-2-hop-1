@@ -22,7 +22,7 @@ Clone-a þetta repo, og ýta því á ykkar eigið git repo:
 > git remote add origin <slóð á repo> # bæta við í þínu repo
 > git push
 ```
-Þegar þið eruð komin með verkefnið, ræsið það með
+Þegar þið eruð komin með verkefnið, sækið pakka með
 
 ```bash
 > npm install
