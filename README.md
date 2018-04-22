@@ -113,4 +113,4 @@ Sjá [package.json](https://github.com/markusfreyr/vefur-2-hop-1/blob/master/pac
 
 * **Arnar Pétursson** - arp25@hi.is - Hugbúnaðarverkfræðinemi
 * **Freyr Saputra Daníelsson** - fsd1@hi.is - Hugbúnaðarverkfræðinemi
-* **Markús Freyr Sigurbjörnsson** -  - Hugbúnaðarverkfræðinemi
+* **Markús Freyr Sigurbjörnsson** - mfs4@hi.is - Hugbúnaðarverkfræðinemi
